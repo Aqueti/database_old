@@ -1,0 +1,333 @@
+{
+   "version":"1.0",
+   "collections":
+   {
+      "composites":
+      {  
+         "type":"collection",
+         "data":
+         {
+            "id":{"type":"string","auto":true, "edit":false},
+            "title":{"type":"string"},
+            "keywords":{"type":"string","description":"keywords related to snapshot"},
+            "description":{"type":"string","description":"keywords related to snapshot"},
+            "preview":{"type":"url"},
+            "compositeDate":{"type":"string","format":"YYYYMMDD"},
+            "compositeTime":{"type":"string","format":"hh:mm.ss"}, 
+            "datasetId" : {"type":"string","auto":true,"edit":false}, 
+            "version":{"type":"string","auto":true,"edit":false},
+            "outputFiles":
+            {
+               "type":"dictionary",
+               "data":
+               {
+                  "krpano":{"type":"string"}
+               }
+            },
+            "width":{"type":"integer","auto":true,"edit":false},
+            "height":{"type":"integer","auto":true,"edit":false},
+            "eventId" : {"type":"string","description":"Id of event"},
+            "access": 
+            {
+               "type":"dictionary",
+               "data":
+               {
+                  "groups": 
+                  {
+                     "type":"array",
+                     "data":
+                     {
+                        "id": 
+                        { 
+                           "type":"select", 
+                           "options":["everybody","nobody"], 
+                           "description":"Select Group" 
+                        },
+                        "permission":
+                        {
+                           "type":"select",
+                           "options":["read","read/write","none"],
+                           "description":"Read/Write access"
+                        }
+                     }  
+                  },
+                  "users": 
+                  {
+                     "type":"array",
+                     "data":
+                     {
+                        "id":{"type":"int","description":"Group Ids"},
+                        "permission":
+                        {
+                           "type":"select",
+                           "options":["read","read/write","none"],
+                           "description":"Read/Write access"
+                        }
+                     }
+                  }
+               }
+            },
+            "location":
+            {
+               "type":"dictionary",
+               "data":
+               {
+                  "longitude":{"type":"number"},
+                  "latitude":{"type":"number"},
+                  "elevation":{"type":"number"},
+                  "description":{"type":"string"},
+                  "azimuth":{"type":"number"},
+                  "altitude":{"type":"number"},
+                  "name":{"type":"string"},
+                  "address":{"type":"string"},
+                  "address2":{"type":"string"},
+                  "city":{"type":"string"},
+                  "state":{"type":"string"},
+                  "zip":{"type":"number"}
+               }
+            }
+         }
+      },
+      "events":
+      {
+         "type":"collection",
+         "data":
+         {
+            "id":{"type":"string","auto":true},
+            "access": 
+            {
+               "type":"dictionary",
+               "data":
+               {
+                  "groups": 
+                  {
+                     "type":"array",
+                     "data":
+                     {
+                        "id":{"type":"int","description":"Group Ids"},
+                        "permission":{"type":"string","description":"Read/Write access"}
+                     }  
+                  },
+                  "users": 
+                  {
+                     "type":"array",
+                     "data":
+                     {
+                        "id":{"type":"int","description":"Group Ids"},
+                        "permission":{"type":"string","description":"Read/Write access"}
+                     }
+                  }
+               }
+            },
+            "description":{"type":"string"},
+            "dates":
+            {
+               "start":{"type":"string","format":"YYYYMMDD"},
+               "end":{"type":"string","format":"YYYYMMDD"}
+            }
+         }
+      },
+      "albums":
+      {
+         "type":"collection",
+         "data":
+         {
+           "id":{"type":"string","auto":true,"edit":false},
+           "owner":{"type":"string","auto":true},
+           "access": 
+           {
+              "type":"dictionary",
+              "data":
+              {
+                  "groups": 
+                  {
+                     "type":"array",
+                     "data":
+                     {
+                        "id": 
+                        { 
+                           "type":"select", 
+                           "options":["everybody","nobody"], 
+                           "description":"Select Group" 
+                        },
+                        "permission":
+                        {
+                           "type":"select",
+                           "options":["read","read/write","none"],
+                           "description":"Read/Write access"
+                        }
+                     }  
+                  },
+                  "users": 
+                  {
+                     "type":"array",
+                     "data":
+                     {
+                        "id":{"type":"int","description":"Group Ids"},
+                        "permission":
+                        {
+                           "type":"select",
+                           "options":["read","read/write","none"],
+                           "description":"Read/Write access"
+                        }
+                     }
+                  }
+              }
+           },
+           "title":{"type":"string"},
+           "defaultView":{"type":"string", "values":["horizontal","vertical"]},
+           "items":
+           {
+              "type":"array",
+              "data":
+              {
+                 "doctype":
+                 {
+                    "type":"select",
+                    "options":["composite","snapshot","album"],
+                    "description":"Type of component this is"
+                 },
+                 "id":{"type":"string","description":"Docment Id"}
+              }
+           }
+         }
+      },
+      "snapshots":
+      {
+         "type":"collection",
+         "data":
+         { 
+            "id":{"type":"string","auto":true,"edit":false},
+            "access": 
+            {
+               "type":"dictionary",
+               "data":
+               {
+                  "groups": 
+                  {
+                     "type":"array",
+                     "data":
+                     {
+                        "id":{"type":"int","description":"Group Ids"},
+                        "permission":{"type":"string","description":"Read/Write access"}
+                     }  
+                  },
+                  "users": 
+                  {
+                     "type":"array",
+                     "data":
+                     {
+                        "id":{"type":"int","description":"Group Ids"},
+                        "permission":{"type":"string","description":"Read/Write access"}
+                     }
+                  }
+               }
+            },
+            "imageId":{"type":"string","description":"reference image id"},
+            "ath":{"type":"number","description":"image horizontal direction "},
+            "atv":{"type":"number","description":"image vertical direction"},
+            "fov":{"type":"number","description":"image fov"},
+            "description":{"type":"string","description":"Text description of the image"},
+            "keywords":{"type":"string","description":"keywords related to snapshot"}
+         }
+      },
+      "groups":
+      {
+         "type":"collection",
+         "data":
+         {
+            "id":{"type":"string","auto":true,"edit":false},
+            "access": 
+            {
+               "type":"dictionary",
+               "data":
+               {
+                  "groups": 
+                  {
+                     "type":"array",
+                     "data":
+                     {
+                        "id":{"type":"int","description":"Group Ids"},
+                        "permission":{"type":"string","description":"Read/Write access"}
+                     }  
+                  },
+                  "users": 
+                  {
+                     "type":"array",
+                     "data":
+                     {
+                        "id":{"type":"int","description":"Group Ids"},
+                        "permission":{"type":"string","description":"Read/Write access"}
+                     }
+                  }
+               }
+            },
+            "description":{"type":"string","description":"Text description of the group"},
+            "name":{"type":"string","description":"name description of the group"}
+         }
+      },
+      "users":
+      {
+         "type":"collection",
+         "data":
+         {
+            "id":{"type":"string","auto":true,"edit":false},
+            "access": 
+            {
+               "type":"dictionary",
+               "data":
+               {
+                  "groups": 
+                  {
+                     "type":"array",
+                     "data":
+                     {
+                        "id":{"type":"int","description":"Group Ids"},
+                        "permission":{"type":"string","description":"Read/Write access"}
+                     }  
+                  },
+                  "users": 
+                  {
+                     "type":"array",
+                     "data":
+                     {
+                        "id":{"type":"int","description":"Group Ids"},
+                        "permission":{"type":"string","description":"Read/Write access"}
+                     }
+                  }
+               }
+            },
+            "description":{"type":"string","description":"Text description of the user"},
+            "name":{"type":"string","description":"name description of the group"}
+         }
+      }
+   },
+   "access":
+   {
+      "type":"dictionary",
+      "data":
+      {
+         "groups": 
+         {
+            "type":"array",
+            "data":
+            [
+               {
+                  "id":{"type":"int","description":"Group Ids"},
+                  "permission":{"type":"string","description":"Read/Write access"}
+               }
+            ]
+         },
+         "users": 
+         {
+            "type":"array",
+            "data":
+            [
+               {"type":"int","descrption":"Group Ids"}
+            ]
+         }
+      }
+   }
+}
+
+

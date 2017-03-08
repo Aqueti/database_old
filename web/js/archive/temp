@@ -1,0 +1,37 @@
+{"_id":"5321af4fe792e689402670db","access":{"groups":[{"permission":"2","id":"1"}],"users":[{"permission":"4","id":"3"}]},"defaultView":"undefined","id":"1394800039896","items":[{"id":"6","doctype":"5"}],"owner":"undefined","title":"undefined"}
+
+{
+   "_id":"5321af4fe792e689402670db",
+   "access":
+   {
+      "groups":
+      [
+         {"undefined":
+            [
+               {"permission":"2","id":"1"}
+            ]
+         }
+      ],
+      "users":
+      [
+         {"undefined":
+            [
+               {"permission":"4","id":"3"}
+            ]
+         }
+      ]
+   },
+   "defaultView":"undefined",
+   "id":"1394800039896",
+   "items":
+   [
+      {
+         "undefined":
+         [
+            {"id":"6","doctype":"5"}
+         ]
+      }
+   ],
+   "owner":"Steve Feller",
+   "title":"undefined"
+}

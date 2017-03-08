@@ -1,0 +1,1011 @@
+/************************************************************
+ * aqueti.js
+ *
+ * Interface function for aqueti web services
+ *************************************************************/
+"use strict";
+
+//Global variables
+var socket = null; 
+
+/************************************************************
+ * Initialization function that establishes connection when run
+ ************************************************************/
+var Init; (Init = function Init () {
+      //Establish socket connection 
+      socket = io.connect('http://spinoza2.disp.duke.edu:');
+})()
+
+
+/************************************************************
+ * Listener function for page events
+ ************************************************************/
+$(document).ready(function()
+{
+   ///////////////////////
+   //Extract query data
+   ///////////////////////
+   $('#editForm').submit(function() 
+   {
+      var data = {};
+      var collection = $("#editForm").attr("title");
+
+
+      // get all the inputs into an array.
+      var $inputs = $('#editForm :input');
+   
+      $inputs.each( function()
+      {
+//         data = findParents(this, data);
+         var name = $(this).attr("title");
+         data[name] = parseChildren(this);
+      });
+   
+      var $selects = $('#editForm :selected');
+      $selects.each( function()
+      {
+         var id = this.id;
+   
+         //Check if we're a key...
+         if( id != "" )
+         {
+            if( id == "key")
+            {
+               //Create a dummy object to add to dictionary
+               var par = $(this).parent().parent().parent();
+               var val = $(this).val();
+   
+               var input = document.createElement("input");
+               input.setAttribute("value",123);
+               input.setAttribute("title",val);
+               input.setAttribute("id",array);
+               par.append(input);
+   
+               data = findParents(input, data);
+            }
+         }
+         else
+            data = findParents(this, data);
+      });
+   
+      var args = {};
+      args.collection = collection;
+      args.data = data;
+      args.query = {"id":data["id"]};
+      args.sort = {};
+      setData( args, setResultCallback(args));
+
+   });
+})
+
+/************************************************************
+ * listCollections
+ *
+ * under development
+ ************************************************************
+function listCollections()
+{
+   //Query collection names
+   var collNames = ['c1','c2'];
+   var collList = generateUL(collNames );
+
+   //Generate array
+   var listContainer= document.createElement("div")
+   document.getElementsByTagName("body")[0].appendChild(listContainer);
+   
+   listContainer.appendChild( collList );
+};
+*/
+
+/************************************************************
+ * function to get a list of images
+ *
+ * This function gets a list of images from the database
+ ************************************************************/
+var genEditForm = function()
+{
+   //Read url values to get key
+   var params = getUrlValues();
+   var template="";
+
+   //get last collection in parameters
+   for( var collection in params)
+   {
+   };
+
+   //Create the args variable - passed through sub classes on construction
+   var args ={};
+   args.collection = collection;
+
+   args.query={};
+   args.sort={};
+   args.url = "./js/template.json";
+
+   //If new, get new id and the loadJSON
+   if( params[args.collection] == "new" )
+   {
+      args.create = true;
+      genNewId( args, genNewIdCallback);
+      return;
+   }
+   
+   //Set query for the data we are looking for
+   //sdf - Modify here to make general
+   args.query["id"]=params[args.collection];
+   
+   //get template for teh specified type
+   loadJSON(args, loadTemplateCallback);
+}
+
+/************************************************************
+ * Callback to get new timestamp
+ ************************************************************/
+var genNewIdCallback = function(args)
+{ 
+      args.data = args.query;
+
+//      setData( args, getResultCallback(args));
+   //get template for teh specified type
+   loadJSON(args, loadTemplateCallback);
+}
+
+
+/************************************************************
+ * Callback from the loadTemplate Function
+ ************************************************************/
+var loadTemplateCallback = function(args,json) 
+{
+   args["template"] = json["collections"][args["collection"]]["data"];
+
+
+   //get Data
+   getData( args, getDataCallback);
+}
+
+/************************************************************
+ * Function that generates forms
+ *
+ * args:
+ *    collection - name of collection
+ *    query      - search parameters
+ *    sort       - sort paramerts
+ *    template   - reference template
+ *    data       - array of data from the database
+ ************************************************************/
+var getDataCallback = function(args)
+{
+   var item={};
+
+   //Take first object if more than one generated
+   if(isObject(args.data[0]))
+      item = args.data[0];
+   else
+      item = args["query"];
+
+   /////////////////////////////////////////////
+   //Generate the preview image
+   /////////////////////////////////////////////
+   if( "preview" in item )
+   {
+      var previewDiv = document.getElementById("previewDiv");
+      /////////////////////////////////////////////
+      //Add preview image to webpage - if composite 
+      /////////////////////////////////////////////
+      var imgargs =
+      {
+         "src":item["preview"],
+         "width":"45%",
+         "height":"50%",
+         "allowfullscreen":false
+      }
+      
+      //Generate preview images
+      var previewFrame = genImage(imgargs);
+      previewFrame.setAttribute("id","previewImg");
+      previewDiv.appendChild(previewFrame);
+   }
+    
+   /////////////////////////////////////////////
+   //Generate the editForm content  
+   /////////////////////////////////////////////
+   var editForm = document.getElementById("editForm");
+   editForm.setAttribute("title",args.collection);
+//   editForm.onsubmit = function(){validateEditForm2()};
+ 
+   //Function to generate the edit form
+   var ul = genUL( args["template"], item, "" );
+
+   ul.setAttribute("title", "root");
+   editForm.appendChild(ul);
+
+   var submitButton = document.createElement("input");
+   submitButton.setAttribute("type","submit");
+   submitButton.setAttribute("id","submit");
+   submitButton.setAttribute("value","submit");
+//   submitButton.onclick = function(){validateEditForm2()};
+
+
+//   $('#submit').attr('onClick','alert("done"); return false;');
+   
+//   var text = document.createTextNode("Submit");
+//   submitButton.appendChild(text);
+   editForm.appendChild(submitButton);
+
+   editForm.setAttribute("name","editForm");
+   editForm.setAttribute("style","overflow-y: scroll");
+   editForm.setAttribute("method","post");
+//   editForm.setAttribute("onsubmit", validateEditForm2(self));
+/*      
+   var root = document.getElementById("editForm");
+   root.appendChild(previewDiv)
+   root.appendChild(editForm);
+   */
+}
+   
+      
+function genImage(args)
+{
+   var frame = document.createElement("iframe");
+   frame.setAttribute("src",args["src"]);
+   frame.setAttribute("width",args["width"]);
+   frame.setAttribute("height",args["height"]);
+   if( args["allowfullscreen"])
+      frame.setAttribute("allowfullscreen");
+   
+   return frame;
+}
+
+var socketResult = function(args)
+{
+}
+
+var setResultCallback = function(args)
+{
+   var url = document.URL;
+   url = url.substring(0,url.indexOf("?"));
+   url = url+"?"+args.collection+"="+args.query["id"];
+
+   //reload with the given url
+   alert("Went to:"+url);
+}
+/************************************************************
+ * Edit form validation procedure
+ ************************************************************/
+//var validateEditForm2 = function ()
+function validateEditForm2() 
+{
+   var args={};
+
+   alert("using validateEditForm2");
+   args.url = "./js/template.json";
+
+   //Form title defines the database we're using
+   args.formName = "editForm";
+   args.collection = document.getElementById(args.formName).getAttribute("title");
+
+   loadJSON( args, parseForm );
+}
+
+/************************************************************
+ * parseForm
+ *
+ * Function that pulls all field from a form based on a template file
+ ************************************************************/
+var parseForm = function(args, json)
+{
+   args.template = json["collections"][args.collection]["data"];
+
+   //Load form into the object
+   var item = document.getElementById(args.formName);
+
+   var data = {};
+
+   var $inputs = $('#editForm :input');
+
+   $inputs.each( function()
+   {
+      var name = $(this).attr("title");
+      data[name] = parseChildren(this);
+      alert("Top:"+name+":"+data[name]);
+   });
+      alert(JSON.stringify(data));
+
+
+   alert("Data:"+JSON.stringify(data));
+
+   //Ready to write
+   args.data = data;
+   args.query = {"id":data["id"]};
+   args.sort = {};
+   setData( args, socketResult(args));
+}
+
+/************************************************************
+ * Recursive function to assign 
+ ************************************************************/
+//function parseTitle(arr, data, value)
+function parseTitle(arr, value)
+{
+   if(isObject(arr))
+   {
+      if( arr.length > 0)
+      {
+         var data = {};
+         var key = arr[0];
+         var newarr = arr.shift();
+         data[key] = parseTitle(newarr, value);
+         return data;
+      }
+      else
+         return "";
+   }
+   else
+   {
+      var data = {};
+      var key = arr[0];
+      return data[key] = value;
+   }
+
+}
+
+/************************************************************
+ * Recursive parsing function
+ ************************************************************/
+var parseChildren = function(item)
+{
+   var mydata = {};
+   var title = item.getAttribute("title");
+   var tag = $(item).prop("tagName");
+   
+   //If select option
+   if(tag == "SELECT")
+   {
+      var value = $(item).val();
+      var name = $(item).attr("title");
+      var id = $(item).attr("id");
+
+      if( typeof name == 'undefined')
+         mydata[title] = name;
+      else
+      {
+         var keys = name.split(":");
+         mydata[title] = parseTitle( keys.shift(), value)
+      }
+   }
+
+   //INPUT and SELECT options
+   else if(tag == "INPUT")
+   {
+      var value = $(item).val();
+      var name = $(item).attr("title");
+      if( typeof name == 'undefined')
+         mydata[title] = name;
+      else
+      {
+         var keys = name.split(":");
+         mydata[title] = parseTitle( keys.shift(), value);
+      }
+   }
+
+   return mydata[name];
+}
+
+/************************************************************
+ * Edit form validation procedure
+ ************************************************************/
+function validateEditForm()
+{
+   var args={};
+   args.url = "./js/template.json";
+   
+   //Form title defines the database we're using
+   args.collection = document.getElementById("editForm").getAttribute("title");
+
+   var data={};
+
+/* 
+
+   ///////////////////////
+   //Extract query data
+   ///////////////////////
+   $('#editForm').submit(function() {
+      // get all the inputs into an array.
+      var $inputs = $('#editForm :input');
+
+      $inputs.each( function()
+      {
+         data = findParents(this, data);
+      });
+      alert(JSON.stringify(data));
+
+      var $selects = $('#editForm :selected');
+      $selects.each( function()
+      {
+         var id = this.id;
+//         var id = this.getAttribute("id");
+
+         //Check if we're a key...
+         if( id != "" )
+         {
+            if( id == "key")
+            {
+               //Create a dummy object to add to dictionary
+               var par = $(this).parent().parent().parent();
+               var val = $(this).val();
+
+               var input = document.createElement("input");
+               input.setAttribute("value",123);
+               input.setAttribute("title",val);
+               input.setAttribute("id",array);
+               par.append(input);
+
+               data = findParents(input, data);
+            }
+         }
+         else
+            data = findParents(this, data);
+      });
+
+      alert(JSON.stringify(data));
+
+      args.data = data;
+      args.query = {"id":data["id"]};
+      args.sort = {};
+      setData( args, socketResult(args));
+
+/*
+      // not sure if you wanted this, but I thought I'd add it.
+      // get an associative array of just the values.
+      $inputs.each(function() 
+      {
+         data[this.name] = findParents(this);
+         data[this.name] = $(this).val();
+      });
+*/
+
+      //set data
+//   });
+
+/**/
+}
+
+/************************************************************
+ * find Parents
+ ************************************************************/
+var findParents = function(element, data, local )
+{
+   //Make local a dictionary if not defined
+   if( !isObject(local))
+      local = {};
+
+   //Get the parent of the parent
+   var par = $(element).parent().parent();
+
+   //get the granparents title
+   var ptitle = $(par).attr("title");
+   var ptag = $(par).prop("tagName");
+   var tag = $(element).prop("tagName");
+   var id = $(element).prop("id");
+
+   //If we're at the top, go here
+   if((tag=="INPUT")||(tag=="input"))
+   {
+      if(ptitle == "root")
+      {
+         data[ $(element).attr("title")] = $(element).val();
+         return data;
+      }
+      else if( id == "array")
+      {
+         local = [$(element).val()];
+      }
+      else
+      {
+         local = $(element).val();
+         data = findParents(par, data, local);
+      }
+   }
+   //We're at the top with a local object
+   else if(ptitle == "root")
+   {
+      var title = $(element).attr("title");
+      data[title] = local; 
+      return data;
+   }
+   //Need to create new object and pass up
+   if((ptag == "UL")||(ptag=="ul"))
+   {
+      var title = $(element).attr("title");
+      var local2 = {};
+      local2[title] = local;
+
+      data = findParents( par, data, local2 );
+      return data;
+   }
+
+   return data;
+}
+
+
+
+var genDataDict = function( args, json)
+{
+   var template = json["collections"][args["collection"]]["data"];
+
+   var result = genDict(template, args["data"]);
+
+   //set data
+   setData( result, socketResult(args));
+   
+}
+
+function genDict( template, data)
+{
+   var result = {}
+
+   //loop through template to move form info into dictionary
+   for( var key in template)
+   {
+      if(template[key]["type"] == "dictionary")
+      {
+         result[key] = genDict(template[key]["data"], data[key]);
+      }
+      else if( key in data)
+      {
+         result[key] = data[key]
+      }
+   }
+
+   return result;
+}
+
+
+   
+/***********************************************************
+ * genUL
+ ***********************************************************/
+function genUL( template, item)
+{
+   //Create the unordered list
+   var ul = document.createElement("ul");
+
+   //Loop through all of the keys in the template and
+   //generate the appropriate item
+   for( var key in template)
+   {
+      if( !item.hasOwnProperty(key))
+         item[key] = "";
+
+      var li = genInput( template[key],item[key], key);
+
+      li.setAttribute("title",key);
+      ul.appendChild(li);
+   }
+   return ul;
+}
+   
+/***********************************************************
+ * genInput
+ *
+ * Function to generate the input Form
+ *
+ * Steps through all template component provided.
+ ************************************************************/
+function genInput(template, item, key)
+{
+   //Create an li component
+   var li = document.createElement("li");
+
+   //If we're a dictionary, recursively call this function and generate a 
+   //new ul element
+   if(template["type"] == "dictionary")
+   {
+      var ul2 = genUL(template["data"], item, key);
+      ul2.setAttribute("title",key);
+      li.setAttribute("title",key);
+      li.appendChild(ul2);
+   }
+
+   //new ul element
+   //asdf - start here
+   else if( template["type"] =="array")
+   {
+      //Key key if it does not exist make it an empty array
+      if( !isArray(item))
+         item = [];
+
+      //Add blank item on end for empty space to add new data
+      var record = genArray( template["data"] );
+      item.push(record);
+
+      //Add text to descript li
+      var text = document.createTextNode(key)
+      li.appendChild(text);
+
+      //Loop through the array and generate an li for each
+      for( var i = 0; i < item.length; i++ )
+      {
+         //generate an UL 
+         var ul2 = genUL( template["data"],item[i], key)
+
+         //Create add button
+         var button = document.createElement("button");
+         var text = document.createTextNode("Add");
+         button.appendChild(text);
+         button.setAttribute("title",name);
+         button.setAttribute("id",name);
+         ul2.appendChild(button);
+
+         li.appendChild(ul2);
+      }
+
+
+      li.setAttribute("title",key);
+   }
+
+
+   /* sdf - remove for testing. This seems out of place 
+   //Case where there are options for the key
+   else if( template[key]["type"] =="options")
+   {
+      var div = document.createElement("div");
+      div.setAttribute("title",name);
+      var inputKey = document.createElement("select");
+      inputKey.setAttribute("id","key");
+      inputKey.setAttribute("title",name);
+   
+      for( var element in template[key]["options"])
+      {
+         var opt = document.createElement("option");
+            opt.setAttribute("id","key");
+            opt.setAttribute("title",name);
+            opt.value = template[key]["options"][element];
+            opt.innerHTML = template[key]["options"][element]; 
+            inputKey.appendChild(opt);
+         }
+         div.appendChild( inputKey );
+
+         li.appendChild(div);
+         ul.appendChild(li);
+      }
+*/
+/*
+   //We do not process type and data keys. All others are default here
+   else if(( key != "type")&&(key != "data"))
+   {
+      //Check if options
+      if( isObject(template[key]["options"]))
+      {
+         var index = 0;
+         var input = document.createElement("select");
+
+      for( var element in template[key]["options"])
+      {
+         var opt = document.createElement("option");
+         opt.value = template[key]["options"][element];
+         opt.innerHTML = template[key]["options"][element]; 
+         input.appendChild(opt);
+         index++; 
+      }
+      }
+   }
+   */
+   else
+   {
+      //Normal processing
+      var input = document.createElement("input");
+      input.setAttribute("type","text");
+ 
+      if( isObject(item ))
+         input.setAttribute("value",item[key]);
+      else
+         input.setAttribute("value",item);
+
+      input.setAttribute("name",key);
+      input.setAttribute("title",key);
+
+      //check if readonly
+      if( template["edit"] == false)
+      {
+         input.setAttribute("readonly",true);
+         input.setAttribute("disable",true);
+      }
+
+      li.setAttribute("title",key);
+      li.innerHTML=key;
+      li.appendChild(input);
+   }
+   
+   return li;
+}
+   
+/************************************************************
+ * genArray
+ ************************************************************/
+function genArray( template )
+{
+   var item = {};
+
+   //Loop through template and add a field for each item
+   for( var key in template)
+   {
+      if(template[key]["type"] == "array")
+         item[key]= [];
+      else if( template[key]["type"] == "dictionary")
+         item[key]= {};
+      else
+         item[key]="";
+   }
+
+   return item;
+ }
+   
+/************************************************************
+ * function to get a list of images
+ *
+ * This function gets a list of images from the database
+ ************************************************************/
+function genImageList( id )
+{
+   //Parse url to get query
+   var query = getUrlValues();
+   var sort ={};
+   
+   var listElement = document.getElementById(id);
+      
+   //Set up processing function for callback to be called when imagelist data is receieved
+   var callback = 
+   {
+      args:{"listElement":listElement, "fields":["test1","test2"]},
+      process: function(data, args)
+      {
+         var home = "";
+         var items=data.length;
+   
+         for( var i = 0; i<items; ++i)
+         {
+            home = "";
+               
+            var listItem = document.createElement("li");
+   
+            //Generate components
+            var url=data[i]["outputFiles"]["krpano"];
+            url = home+url.replace(/"/g,"");
+   
+            //This is for Cameron
+            var link = "<a href=\""+url+"/index.html\"></a>";
+            var div = "<div class=\"title\">"+data[i]["title"]+"</div>";
+            var img = "<img src=\""+url+"/preview.jpg\" />"; 
+            var embed = "<a href=\""+url+"/index.html\"><iframe width=100% height=100% src=\""+link+"\"></iframe></a>";
+            var embed2 = "&lt;iframe width=100% height=50% src=\""+url+"/index.html\"&gt;&lt;/iframe&gt;";
+   
+   	      if( "title" in data[i])
+            {
+   	         var item = "<a href=\""+url+"/index.html\">"+img+"<h2>"+data[i]["title"]+"</h2></a>";
+            }
+            else
+            {
+   	         var item = "<a href=\""+url+"/index.html\">"+img+"</a>";
+            }
+   
+            listItem.innerHTML = item;
+            listElement.appendChild(listItem);
+         }
+      }
+   };
+   
+   var dataArgs={"collection":collection,"query":query,"sort":sort};
+
+   //Initial call to get data
+   getData(dataArgs, callback );
+};
+   
+/************************************************************
+ * generateUL
+ ************************************************************/
+function generateUL(id, query, sort, fields)
+{
+   //Find container element in html
+   var listElement = document.getElementById(id);
+   
+   //Establish listen function to process results
+   socket.on('data', function(data)
+   {
+      if(data.error)
+      {
+         alert("Data transmission error!");
+      }
+      else
+      {
+         var items=data.length;
+         for( var i = 0; i<items; ++i)
+         {
+            var listItem = document.createElement("li");
+            listItem.innerHTML = JSON.stringify(data[i]['title']);
+            listElement.appendChild(listItem);
+         }
+      }
+   });
+   
+   //Everything is ready. Emit data request. Call back should take results.
+   socket.emit("getData", {"query":query, "sort":sort});
+}
+   
+   
+/************************************************************
+ * genDropDownList 
+ *
+ * Generate a dropdown list for an dictionary passed in
+ ************************************************************/
+var genSelectInput = function(items, fields) 
+{
+   var select = document.createElement("select");
+   var item="";
+   for( var i = 0; i < items.length; i++)
+   {
+      var option = document.createElement("option");
+      option.value = items[i][fields[0]];
+      option.text =  items[i][fields[0]];
+      select.appendChild(option);
+   }
+   
+   return select;
+}
+  
+/************************************************************
+ * getData object
+ *
+ * inputs
+ ************************************************************/
+var getData = function (args, callback)
+{
+   //Establish listen function to process results
+   socket.on('data', function(data)
+   {
+      if(data.error)
+      {
+         alert("Data transmission error!");
+      }
+      else
+      {
+         args["data"] = data;
+         callback(args);
+      }
+   });
+   
+   //Everything is ready. Emit data request. Call back should take results.
+   //args should have collection, sort, and query
+   socket.emit("getData", {"collection":args["collection"],"query":args["query"],"sort":args["sort"]});
+}
+
+/************************************************************
+ * setData object
+ *
+ * inputs
+ ************************************************************/
+var setData = function (data, callback)
+{
+   if( !isObject(data["query"]))
+      data["query"]={};
+   if( !isObject(data["sort"]))
+      data["sort"]={};
+  
+   //Establish listen function to process results
+   socket.on('data', function(data)
+   {
+      if(data.error)
+      {
+         alert("Data transmission error!");
+      }
+      else
+      {
+         alert("called back");
+         callback("ok");
+      }
+   });
+
+   //Everything is ready. Emit data request. Call back should take results.
+   socket.emit("setData", data);
+}
+
+/************************************************************
+ * genNewId - function to get a new id
+ *
+ * inputs
+ ************************************************************/
+var genNewId = function (args, callback)
+{
+   //Establish listen function to process results
+   socket.on('newId', function(data)
+   {
+      if(data.error)
+      {
+         alert("Data transmission error!");
+      }
+      else
+      {
+         args.query ={"id":data};
+         callback(args);
+      }
+   });
+   
+   //Everything is ready. Emit data request. Call back should take results.
+   //args should have collection, sort, and query
+   socket.emit("getNewId", args);
+}
+
+
+
+
+/************************************************************
+ * function to get a URL value
+ ************************************************************/
+var getUrlValues = function ()
+{
+   var vars={};
+   var params=[];
+   
+   var searchString = window.location.search.substring(1);
+   var variableArray = searchString.split('&');
+   for(var i = 0; i < variableArray.length; i++)
+   {
+      var keyValuePair = variableArray[i].split('=');
+      if( keyValuePair != null )
+      {
+         //if album, set variable (Duke vs. Va. Tech hack)
+         //Duke vs. Va. album = 022520142400. Must be persistent
+         vars[keyValuePair[0]] = keyValuePair[1];
+         continue;
+      }
+   }
+   return vars;
+}
+
+function addItem( element )
+{
+   /*
+   //Get the parent of the button
+   var par = $(element).parent();
+
+
+   var id = document.getElementById(element);
+
+   value = id.getAttribute("id");
+
+*/
+}
+   
+/************************************************************
+ * loadTemplate
+ *
+ * Generate a dropdown list for an dictionary passed in
+ *
+ * Inputs:
+ *    args[url] - link to the file to load
+ *    callback  - callback function to process loaded data
+ ************************************************************/
+function loadJSON(args, callback)
+{
+   $.getJSON(args["url"], function(json)
+   {
+      callback(args, json);
+   });
+}
+
+/************************************************************
+ * isArray
+ ************************************************************/
+function isArray( obj )
+ {
+    return isObject(obj) && (obj instanceof Array);
+ }
+
+ /************************************************************
+  * isObject 
+  ************************************************************/
+function isObject( obj )
+  {
+     return obj && (typeof obj  === "object");
+  }
+
+

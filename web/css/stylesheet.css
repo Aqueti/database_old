@@ -1,0 +1,314 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : Feb 21, 2014, 6:13:57 PM
+    Author     : Cameron
+*/
+
+body {
+    background-color: #333333;
+}
+
+::-webkit-scrollbar {
+   height:2px;
+}
+
+
+h1 {
+    position: relative;
+    font-family: 'Lato', sans-serif;
+    color: #0033ff;
+    top: 0px;
+    left: 0;
+    right: 0;
+    height: 100%;
+    text-align: center;
+    font-size: 60px;
+    margin: 0;
+    padding-top: 10px;
+    background-color: white;
+    font-variant: small-caps;
+    font-weight: 900;
+    letter-spacing: 4px;
+    z-index: 101;
+}
+
+#header {
+    position: fixed;
+    height: 90px;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 0;
+    margin: 0;
+    z-index: 10;
+    min-width: 1000px;
+}
+
+#duke {
+    position: absolute;
+    height: 85px;
+    left: 20px;
+    top: 15px;
+    margin: 0;
+    z-index: 4;
+    background-color: white;
+}
+
+#aqueti {
+    position: absolute;
+    width: 160px;
+    height: 100px;
+    right: 20px;
+    top: 0;
+    margin: 0;
+    z-index: 4;
+    margin-top: 0;
+    background-color: white;
+}
+
+#aqueti img {
+    position: absolute;
+    width: 100%;
+    top: 23px;
+    margin: 0;
+    padding: 0;
+}
+
+.vertical {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100px;
+    bottom: 0;
+}
+
+.vertical ul {
+    position: static;
+    display: block;
+    margin: 0;
+    padding: 0;
+    min-width: 1000px;
+}
+
+.vertical ul li {
+    position: relative;
+    display: inline-block;
+    height: 600px;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    list-style-type: none;
+}
+
+.vertical ul li a {
+    position: relative;
+    display: table;
+    height: auto;
+    width: auto;
+    max-height: 500px;
+    max-width: 100%;
+    margin: 0 auto 0 auto;
+    padding: 0;
+    text-decoration: none;
+    cursor: default;
+}
+
+.vertical ul li a img {
+    position: relative;
+    top: 0;
+    height: auto;
+    width: auto;
+    max-height: 500px;
+    max-width: 100%;
+    margin: auto;
+    padding: 0;
+    z-index: 1;
+    cursor: pointer;
+}
+
+.vertical ul li a h2 {
+    position: relative;
+    left: 0;
+    bottom: 43px;
+    height: 40px;
+    width: 100%;
+    line-height: 40px;
+    margin: 0;
+    padding: 0;
+    z-index: 1;
+    text-align: center;
+    background: rgba(224, 246, 255, .5);
+    font-weight: 400;
+    color: black;
+    font-family: 'Lato', sans-serif;
+    cursor: pointer;
+}
+
+.vertical ul li p {
+    display: block;
+    position: relative;
+    width: 100%;
+    height: 250px;
+    overflow: scroll;
+    color: white;
+    font-family: 'Lato', sans-serif;
+    text-align: center;
+    bottom: 40px;
+    font-size: 25px;
+}
+
+.horizontal {
+    position: absolute;
+    top: 100px;
+    height: auto;
+    left: 0;
+    right: 0;
+}
+
+.horizontal ul {
+    position: static;
+    display: block;
+    left: 0;
+    right: 0;
+    height: 300px;
+    margin:0;
+    padding: 4px 0 0 0;
+    white-space: nowrap;
+    overflow-x: scroll;
+    overflow-y: hidden;
+}
+
+.horizontal ul li {
+    position: relative;
+    display: inline-block;
+    height: auto;
+    width: auto;
+    margin: 0;
+    padding: 4px;
+    left: 0;
+    top: 0;
+    cursor: default;
+    list-style-type: none;
+}
+
+.horizontal ul li a {
+    position: relative;
+    display: inline;
+    height: auto;
+    width: auto;
+    margin: 0;
+    padding: 0;
+    text-decoration: none;
+    cursor: default;
+}
+
+.horizontal ul li a img {
+    position: relative;
+    display: inline-block;
+    top: 0;
+    max-height: 100%;
+    max-width: 100%;
+    padding: 0;
+    height: 300px;
+    width: auto;
+    margin: 0 0 0 0;
+    z-index: 1;
+    cursor: pointer;
+}
+
+.horizontal ul li a h2 {
+    position: relative;
+    left: 0;
+    bottom: 44px;
+    height: 40px;
+    line-height: 30px;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    z-index: 1;
+    text-align: center;
+    background: rgba(224, 246, 255, .5);
+    font-weight: 400;
+    font-family: 'Lato', sans-serif;
+    color: black;
+    cursor: pointer;
+}
+
+.horizontal ul li p {
+    display: none;
+}
+
+#queryList {
+   z-index: 200;
+}
+
+#snapDiv {
+   display: block;
+   position:fixed;
+   bottom: 20px;
+   margin-left: auto;
+   margin-right:auto;
+   vertical-align: middle;
+   z-index: 400;
+   width:300px;
+   height:300px;
+   color: #FFFFFF;
+   background: rgba(0,0,0,0.8);
+   position: absolute;
+}
+
+#pano {
+   position: fixed;
+   top: 0px;
+   left: 0px;
+   width:100%;
+   height:100%;
+   z-index: 3;
+}
+
+#ifaceDiv {
+   position: absolute;
+   top: 0px;
+   z-index: 100;
+}
+
+#snapButton {
+   position: relative;
+   z-index: 4;
+   width:75px;
+}
+#infoButton {
+   position: relative;
+   z-index: 4;
+   margin-left: 5px;
+}
+
+#infoDiv {
+   color: #FFFFFF;
+   background: rgba(0,0,0,0.8);
+   position: absolute;
+   bottom: 40px;
+   z-index: 100;
+}
+
+#compositeTitle {
+   position: fixed;
+   top: 0px;
+   left: 0px;
+   background: rgba(0,0,0,0);
+   z-index: 2;
+}
+
+//#mainDiv {
+//   left: 0px;
+//   top: 0px;
+//   position:absolute;
+//   height: 100%;
+//   width: 100%;
+//   z-index: 1;
+//}
+

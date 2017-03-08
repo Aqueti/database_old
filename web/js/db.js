@@ -9,10 +9,13 @@ var socket = null;
  ************************************************************/
 var Init; (Init = function Init () 
 {
+   var hostname = location.hostname;
+   var port = location.port;
+
+   var connectData = JSON.stringify("http://"+hostname+":");   
+
    //Establish socket connection 
-//   socket = io.connect('http://spinoza2.disp.duke.edu:');
-   socket = io.connect('http://localhost:');
-//   socket = io.connect('http://ec2-54-221-146-22.compute-1.amazonaws.com');
+   socket = io.connect('http://10.0.0.5:');
 })()
 
 var db = 

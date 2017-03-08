@@ -68,7 +68,10 @@ VERBOSE = 1;
 mdb = None;
 #collections = ["composites","albums","snapshots"]
 collections = []
-port=8088
+config = {};
+config["port"] = 8080
+config["webHome"] = os.getcwd()+"/../web"
+config["database"] = "aqueti"
 
 ############################################################
 # SocketIO Class
@@ -309,10 +312,13 @@ def chat(environ, start_response):
        return serve_file(environ, start_response)
 
 def serve_file(environ, start_response):
-   public = "/home/sfeller/develop/aware/server2/web"
-   print "Path:"+str(public)
+   global config
+
+   public = config["webHome"]
    path = os.path.normpath( os.path.join(public, environ['PATH_INFO'].lstrip('/')))
-   assert path.startswith(public), path
+
+   print "Path:"+str(public)
+#   assert path.startswith(public), path
    if os.path.exists(path):
         start_response('200 OK', [('Content-Type', 'text/html')])
         with open(path) as fp:
@@ -347,7 +353,7 @@ def main():
    global VERBOSE
    global mdb 
    global collection
-   global port
+   global config
 
    #default access info
    awsAccessKey = 'AKIAJICPBE3SSHW5SR7A'
@@ -360,19 +366,35 @@ def main():
 
    parser.add_argument('-v', action='store_const', dest='VERBOSE', const='True', help='VERBOSE output')
    parser.add_argument('-vv', action='store_const', dest='VERBOSE2', const='True', help='VERBOSE output')
-   parser.add_argument('-a', action='store', dest='aws_access', help='AWS access code')
-   parser.add_argument('-s', action='store', dest='aws_secret', help='path to data')
-   parser.add_argument('-b', action='store', dest='bucket', help='S3 Bucket with data')
+   parser.add_argument('-c', action='store', dest='config', help='config file to use')
+   parser.add_argument('-d', action='store', dest='dbase', help='database to use')
+   parser.add_argument('-p', action='store', dest='port', help='port to use')
+   parser.add_argument('-w', action='store', dest='webhome', help='home for the website')
 
    """
+   parser.add_argument('-a', action='store', dest='aws_access', help='AWS access code')
+   parser.add_argument('-b', action='store', dest='bucket', help='S3 Bucket with data')
+   parser.add_argument('-s', action='store', dest='aws_secret', help='path to data')
    parser.add_argument('-p', action='store_const', dest='printout', const='True', help='print contents of JSON file')
    parser.add_argument('-d', action='store', dest='path', help='path to data')
    parser.add_argument('-u', action='store_const', dest='update', const='True', help='update records')
-   parser.add_argument('-c', action='store', dest='collection', help='collection (table) to use')
    """
-   parser.add_argument('dbase', help='database name')
+#   parser.add_argument('dbase', help='database name')
 
    args=parser.parse_args()
+
+   if args.config:
+      config = AJSON.readJson(args.config)
+
+   if args.webhome:
+      config["webHome"] = args.webhome
+
+   if args.port:
+      config["port"] = args.port
+
+   if args.dbase:
+      config["database"] = str(args.dbase)
+     
 
    #set VERBOSE flag as requested
    if args.VERBOSE:
@@ -384,7 +406,7 @@ def main():
 
    #extract relevant parameters
    if VERBOSE > 1:
-      print "Using database "+args.dbase
+      print "Using database "+config["database"]
 
 
    ##################################################
@@ -393,9 +415,9 @@ def main():
    #connect to database
    mdb=MDB.MDB()
    if VERBOSE > 1:
-      print "Connecting to mongodb: "+args.dbase
+      print "Connecting to mongodb: "+config["database"]
    try:
-      rc = mdb.connect(args.dbase)
+      rc = mdb.connect(config["database"])
    except:
       print "MDB: Unable to connect to database: "+args.dbase
       return -1
@@ -422,9 +444,10 @@ def main():
 #      print "Unable to connect to AWS. Please check inputs"
 #      return -1
 
-   print "Starting the server on port "+str(port)+"!"
+   print "Server Home:"+config["webHome"]
+   print "Starting the server on port "+str(config["port"])+"!"
    sio_server = SocketIOServer(
-      ('', port ), chat, 
+      ('', config["port"] ), chat, 
       policy_server=False)
    sio_server.serve_forever()
 

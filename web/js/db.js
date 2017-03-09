@@ -12,10 +12,8 @@ var Init; (Init = function Init ()
    var hostname = location.hostname;
    var port = location.port;
 
-   var connectData = JSON.stringify("http://"+hostname+":");   
-
    //Establish socket connection 
-   socket = io.connect('http://10.0.0.5:');
+   socket = io.connect();
 })()
 
 var db = 

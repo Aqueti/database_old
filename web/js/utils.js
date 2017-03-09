@@ -39,7 +39,7 @@ var utils =
     * \return result.element is the element object, result.index is the element index
     *       
     **/
-   findChildById( element, id )
+   findChildById: function( element, id )
    {
       var result = {};
       result["element"] = null;

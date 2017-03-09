@@ -385,8 +385,13 @@ var getTemplatesCallback = function(response, args)
    templateDiv.appendChild(document.createTextNode("Template Version: "));
    templateDiv.appendChild(versionSelect);
 
+   var options = ["query","create"];
+   var optionList = genDropDownList( "options","optionList",options);
+
+
+
    //Create the submit button for a query now. This will be displayed after the version is selected
-   var queryButton = genSubmitButton("Submit Query");
+   var submitButton = genSubmitButton("Submit");
 
    ///////////////////////////////////////////// 
    // Create listener for a template version change
@@ -397,20 +402,30 @@ var getTemplatesCallback = function(response, args)
       var index = $("#templateVersionDropDown option:selected").index();
       args["templateIndex"] = index;
 
-      var li = genInput(args["templates"][index], "Query" );
+      var optionIndex = $("#optionList option:selected").index();
+      if( optionList.index == 0 ) { 
+         var li = genInput(args["templates"][index], "Query", args["templates"][index] );
+      }
+      else {
+         var li = genInput(args["templates"][index], "Query" );
+      }
       mainDiv.appendChild(li);
-      mainDiv.appendChild(queryButton);
+      mainDiv.appendChild(optionList);
+      mainDiv.appendChild(submitButton);
    });
 
   
    ///////////////////////////////////////////// 
    // Query Button listener
    ///////////////////////////////////////////// 
-   $(queryButton).click( function() 
+   $(submitButton).click( function() 
    {
       //Get query data
       var queryElement = document.getElementById("Query");
       var qlist = parseInputTree(queryElement);
+
+      var qval = document.getElementById("Query");
+//      mainDiv.removeChild(qval);
 
       alert("Query: "+JSON.stringify(qlist));
       if( qlist["query"] == undefined ) {

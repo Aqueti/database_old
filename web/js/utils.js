@@ -19,6 +19,24 @@ var utils =
    isObject: isObject,
    isArray: isArray,
 
+   /************************************************************
+    * clear values for a given element and all of its children
+    ************************************************************/
+   clearElement: function( element )
+   {
+      $(element).val("");
+   
+      var children = $(element).children();
+   
+      if(children.length > 0)
+      {
+         for( var i= 0; i <children.length; i++)
+         {
+            clearElement(children[i]);
+         }
+      }
+   },
+
   /************************************************************
    * Function to remove all children of an element
    ************************************************************/

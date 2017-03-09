@@ -6,86 +6,7 @@
 "use strict";
 
 //Global variables
-//var socket = null; 
 
-/************************************************************
- * Listener function for page events
- ************************************************************
-$(document).ready(function()
-{
-   //AddItem button callback
-   $(document.body).on('click', "#addButton", function() 
-   {
-      //Go to parent and down to sibling UL
-      var par = $(this).parent()
-      var child = $(par).children().first(); //sibling UL
-
-      //Create copy of last LI
-      //get last li elment in sibling
-      var ref = $(child).children().last().children().first(); 
-      var element = $(ref).clone()
-
-      //Step through element and change values
-      clearElement( element);
-
-      //Get child of child to set UL value
-      var index = $(element).val();
-      $(element).attr("index", index+1);
-
-      //Create li element
-      var li = document.createElement("li");
-      var text = document.createTextNode(index+1);
-      li.appendChild(text);
-      li.appendChild(element[0]);
-
-      //Add element into html
-      $(li).appendTo(child);
-   });
-
-   //We are submittnig data
-   $(document.body).on('click', "#submitButton", function()
-   {
-      ///////////////////////
-      //Extract query data
-      ///////////////////////
- 
-      var args = {};
-
-      //Get collection name from the title
-      var collection = $(this).attr("name");
-
-      //The top-level ul is defined by the id of root
-      var root = document.getElementById("root");
-
-      var data = parseInputTree(root);
-
-      //Put data in a form for submission
-      args.collection = collection;
-      args.data = data["root"];
-      args.query = {"id":args.data["id"]};
-      args.sort = {};
-
-      db.setData( args, setResultCallback);
-   });
-});
-*/
-/************************************************************
- * clear values for a given element and all of its children
- ************************************************************/
-function clearElement( element )
-{
-   $(element).val("");
-
-   var children = $(element).children();
-
-   if(children.length > 0)
-   {
-      for( var i= 0; i <children.length; i++)
-      {
-         clearElement(children[i]);
-      }
-   }
-}
 
 /************************************************************
  * function to get a list of images
@@ -358,7 +279,7 @@ var getTemplatesCallback = function(response, args)
    var mainDiv = document.getElementById("mainDiv");
 
    var h2 = document.createElement("h2");
-   var text = document.createTextNode("Query");
+   var text = document.createTextNode("Select Operation");
    h2.appendChild(text);
    mainDiv.appendChild(h2);
    
@@ -377,22 +298,34 @@ var getTemplatesCallback = function(response, args)
       versionList[i] = args["templates"][i]["version"];
    }
 
+   var templateSelect = genDropDownList( "templateList", "templateList", templateList);
+   templateSelect.setAttribute("id","templateListDropDown");
+   templateSelect.value = templateList[templateList.length-1];
+
    var versionSelect = genDropDownList( "templateVersion","templateVersion",versionList);
    versionSelect.setAttribute("id","templateVersionDropDown");
    versionSelect.value = versionList[versionList.length-1];
 
+
    //Add to the page elements
+   templateDiv.appendChild(document.createTextNode("Template List: "));
+   templateDiv.appendChild(templateSelect);
+   templateDiv.appendChild(document.createElement("br"));
+   
    templateDiv.appendChild(document.createTextNode("Template Version: "));
    templateDiv.appendChild(versionSelect);
 
-   var options = ["query","create"];
-   var optionList = genDropDownList( "options","optionList",options);
-
-
+   var operations = ["query","create"];
+   var operationDropDown = genDropDownList( "operationDropDown","operationDropDown",operations);
+   templateDiv.appendChild(document.createElement("br"));
+   templateDiv.appendChild(document.createTextNode("Function: "));
+   templateDiv.appendChild(operationDropDown);
 
    //Create the submit button for a query now. This will be displayed after the version is selected
-   var submitButton = genSubmitButton("Submit");
-
+   var submitButton = genSubmitButton("Operation Submit");
+   templateDiv.appendChild(document.createElement("br"));
+   templateDiv.appendChild(submitButton);
+/*
    ///////////////////////////////////////////// 
    // Create listener for a template version change
    ///////////////////////////////////////////// 
@@ -413,36 +346,78 @@ var getTemplatesCallback = function(response, args)
       mainDiv.appendChild(optionList);
       mainDiv.appendChild(submitButton);
    });
+*/
 
-  
    ///////////////////////////////////////////// 
    // Query Button listener
    ///////////////////////////////////////////// 
    $(submitButton).click( function() 
    {
-      //Get query data
+      var operation = $("#operationDropDown option:selected").text();
+
+      //Get selected value and generate remaining pages
+      var index = $("#templateVersionDropDown option:selected").index();
+      args["templateIndex"] = index;
+      args["template"] = args["templates"][index];
+
+      if( operation == "query") {
+         genQueryObject( args );
+     }
+     else  
+     {
+     }
+/*
+         //Get query data
+         var queryElement = document.getElementById("Query");
+         var qlist = parseInputTree(queryElement);
+
+         var qval = document.getElementById("Query");
+
+         alert("Query: "+JSON.stringify(qlist));
+         if( qlist["query"] == undefined ) {
+            args.query = {};
+         }
+         else {
+            args.query = qlist["Query"];
+         }
+
+         //submit data request
+         db.getDocuments( args, documentListCallback );
+*/
+   });
+
+   //trigger default selection
+//   $(versionSelect).trigger('change');
+}
+
+/**
+ * \brief Generate Query Page
+ **/
+var genQueryObject = function( args )
+{
+   var mainDiv = document.getElementById("mainDiv");
+   var li = genInput(args["template"], "Query" );
+   mainDiv.appendChild(li);
+
+   var querySubmitButton = genSubmitButton("Submit Query");
+   mainDiv.appendChild(querySubmitButton); 
+
+   $(querySubmitButton).click( function() 
+   {
       var queryElement = document.getElementById("Query");
       var qlist = parseInputTree(queryElement);
-
-      var qval = document.getElementById("Query");
-//      mainDiv.removeChild(qval);
-
-      alert("Query: "+JSON.stringify(qlist));
       if( qlist["query"] == undefined ) {
          args.query = {};
       }
       else {
-         args.query = qlist["Query"];
+         args.query = qlist["QueryList"];
       }
 
-      //submit data request
+      //Send the query
       db.getDocuments( args, documentListCallback );
    });
 
-   //trigger default selection
-   $(versionSelect).trigger('change');
 }
-
 
 /** 
  * \brief Callback for when a document is received from the database

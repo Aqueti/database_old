@@ -8,12 +8,42 @@
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtGui import QIntValidator, QDoubleValidator
+from PyQt5.QtWidgets import *
 
-class AutoWindow():
-#   qwindow = QMainWindow
+class MainScreen(QMainWindow):
+   interfaces = {}
+   ## @brief Create the initial window
+   #
+   # This function creates the intial window and 
    def __init__(self):
-      print("Autowindow")
-#      QMainWindow.__init__(self)
+      self.mainWindow = QMainWindow
+      self.mainWindow.__init__(self)
+
+   ## @brief resize the window
+   def resize(self, width, height):
+      print("Resizing to "+str(width) +":"+str(height))
+#      self.mainWindow.resize(QWidget.resize(width, height))
+
+
+   ## @brief Adds an object of the given value based on the template
+   def addObject( self, template, value ):
+      print("Adding Object")
+      objects = 0
+      if( template["type"] == "string"):
+         objects = objects + self.addTextBox( template, value )
+         return objects
+      else:
+         print ("Undefined type: "+str(template["type"]))
+         return -1
+
+   ## @brief Adds a text box
+   #
+   def addTextBox( self, template, value ):
+      self.interfaces["test"] =QLineEdit(self)
+      self.interfaces["test"].move(20,20)
+      return 1
+
 
 
 #class Ui_Dialog(object):

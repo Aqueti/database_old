@@ -77,21 +77,22 @@ def readJson(name):
    #verify that the filename has been set
    if name is None:
       if VERBOSE > 0:
-         print "Name not defined"
+         print("Name not defined")
       return -1
 
    #if file does not exist, use current database (empty)
    if not os.path.isfile(name):
       if VERBOSE > 1:
-         print "readFile: ",name," does not exist, creating empty dictionary"
+         print("readFile: ",name," does not exist, creating empty dictionary")
       return -1
 
    #open specified filename
    try:
       fptr = open(name)
-   except(Exception, IOError), e:
+   except:
+#   except(Exception, IOError), e:
       if VERBOSE > 0:
-         print 'readFile: Could not open %s: %s'%(name,e)
+         print('readFile: Could not open %s: %s'%(name,e))
       return -2
 
    #read data from json file
@@ -125,20 +126,21 @@ def writeJson(name, data, force):
   #verify that the filename has been set
   if name is None:
     if VERBOSE > 0:
-      print "write: Name not defined"
+      print("write: Name not defined")
     return -1
 
   if os.path.isfile(name)and force==False:
     if VERBOSE > 0:
-      print "cannot overwrite existing", name
+      print("cannot overwrite existing"+ name)
     return -2 
   else:
     try:
       fptr = open(name, "w")
       fptr.write(json.dumps(data, indent=2, sort_keys=True)) # sort or arb order
-    except(IOError), e:
+#    except(IOError), e:
+    except:
       if VERBOSE > 0:
-        print 'write: Could not write destination %s: %s'%(json_mfile,e)
+        print('write: Could not write destination %s: %s'%(json_mfile,e))
       return -3
   return 1
 
@@ -151,7 +153,7 @@ def writeJson(name, data, force):
 #############################################
 """
 def printJson( dbase ):
-  print json.dumps(dbase, indent=4)
+  print(json.dumps(dbase, indent=4))
   return 1
 """
 ############################################################
@@ -189,9 +191,9 @@ def main():
   #Check if we're creating the file, add key and value to dictionary
   if args.create:
     if VERBOSE > 0:
-      print "Creating "+str(args.filename)+" with "+str(args.key)+":"+str(args.value)
+      print("Creating "+str(args.filename)+" with "+str(args.key)+":"+str(args.value))
     if( os.path.isfile(args.filename[0])):
-      print "File exists, unable to create!"
+      print("File exists, unable to create!")
       return -1
     else:
       data = {}
@@ -207,13 +209,13 @@ def main():
 
         writeJson(args.filename[0], data, True)
       else:
-        print "Must include key and value arguments to inserts"
+        print("Must include key and value arguments to inserts")
         return 1
 
   #if insert option, extract the key and value
   if args.insert:
     if VERBOSE > 0:
-      print "Inserting "+str(args.key)+":"+str(args.value)+" into "+str(args.filename[0])
+      print("Inserting "+str(args.key)+":"+str(args.value)+" into "+str(args.filename[0]))
 
     #check for key and value
     if args.key and args.value:
@@ -225,7 +227,7 @@ def main():
         except:
           insertJson(args.filename[0], args.key, args.value)
     else:
-      print "Must include key and value arguments to inserts"
+      print("Must include key and value arguments to inserts")
       return 1
 
   #read in file 
@@ -233,7 +235,7 @@ def main():
 
   #if printout
   if args.printout:
-    print json.dumps(data, indent=4)
+    print(json.dumps(data, indent=4))
 
   #write file
   if args.write:

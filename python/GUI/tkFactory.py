@@ -11,6 +11,7 @@ class tkFactory:
    components = {}
    loopCallback = ""
    loopDuration = 1000
+   buttonCount = 0
    
    ##@brief intialize the main window and start the mainloop
    def __init__(self, template, width, height ):
@@ -68,7 +69,32 @@ class tkFactory:
          for k, v in template["data"].items():
              child = self.addObject( k, template["data"][k], value, frame )
              children.append(child)
+
+      if "edit" in template:
+         editFlag = template["edit"]
+      else:
+         editFlag = False
+
+      if editFlag is True:
+         child = self.addButton("Add Object", self.buttonPress, frame)
+         children.append(child)
       return frame
+
+   ##@brief dictionary button press
+   def buttonPress(self):
+      self.buttonCount = self.buttonCount+1
+      print( str(self.buttonCount ))
+
+   ##@brief add a button
+   def addButton( self, buttonText, callback, parent):
+      print("Adding button:"+buttonText)
+      frame = Frame(parent)
+      frame.pack()
+      button = Button( frame, text=buttonText, command = callback)
+      button.pack()
+
+      return frame
+
 
    ##@brief adds a label
    def addLabel(self, labelText, parent, pos=LEFT ):
@@ -84,7 +110,7 @@ class tkFactory:
       if "edit" in template:
          print( str(template["edit"]))
          editFlag = template["edit"]
-         print("Edit found and is"+str(editFlag))
+         print("Edit found and is "+str(editFlag))
       else:
          print("Edit found and False")
          editFlag = True
@@ -104,9 +130,3 @@ class tkFactory:
       return frame
    
 
-   ##@brief add a frame dictionary
-   def addButton( self, text, callback ):
-      print("Adding button")
-   
-      
-      

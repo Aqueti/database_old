@@ -4,6 +4,7 @@
    "type":"template",
    "key":"name",
    "collection":"templates",
+   "edit":true,
    "data": 
    {
       "_id":{"type":"string", "description":"Object Id in the dictionary", "auto":true, "edit":false},

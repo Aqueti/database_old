@@ -7,20 +7,35 @@ from tkinter import ttk
 class AddDialog:
 
     def __init__(self, parent):
+      #Add callback. 
       self.top = Toplevel(parent)
+      frame = Frame( self.top )
+      frame.pack()
 
-      widgetList = ["array", "dictionary", "string", "integer"] 
-      var1 = StringVar(self.top)
-      var1.set("string")
-      self.w = OptionMenu(top, var1, *widgetList)
-      w.pack()
+      #create a drop down with the supported type
+      widgetList = ["array", "dictionary", "string", "integer", "double"] 
+      self.var = StringVar(frame)
+      self.var.set("string")
+      self.w = OptionMenu(frame, self.var, *widgetList)
+      self.w.pack()
 
-      b = Button(frame, text="OK", command=self.ok)
+      #Creatre a cancel button
+      cb = Button(self.top, text="Cancel", command=self.cancel)
+      cb.pack(pady=5)
+
+      #Creatre an OK button
+      b = Button(self.top, text="OK", command=self.ok)
       b.pack(pady=5)
 
+    def cancel(self):
+        print("Cancelling")
+#        self.callback(self.e.get())
+        self.top.destroy()
+
     def ok(self):
-        print("value is", self.e.get())
-        self.w.destroy()
+        print("value is", self.var.get())
+#        self.callback(self.e.get())
+        self.top.destroy()
 
 
 ##@brief class for creating TK GUIs on the fly

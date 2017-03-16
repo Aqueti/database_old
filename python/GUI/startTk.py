@@ -9,7 +9,7 @@ import tkFactory
 
 ##@brief callback for mainloop
 def windowCallback():
-   print("Hello")
+   pass
 
 ##@brief Main function
 def main():

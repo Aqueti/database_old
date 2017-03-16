@@ -4,6 +4,24 @@ import json
 from tkinter import *
 from tkinter import ttk
 
+class AddDialog:
+
+    def __init__(self, parent):
+      self.top = Toplevel(parent)
+
+      widgetList = ["array", "dictionary", "string", "integer"] 
+      var1 = StringVar(self.top)
+      var1.set("string")
+      self.w = OptionMenu(top, var1, *widgetList)
+      w.pack()
+
+      b = Button(frame, text="OK", command=self.ok)
+      b.pack(pady=5)
+
+    def ok(self):
+        print("value is", self.e.get())
+        self.w.destroy()
+
 
 ##@brief class for creating TK GUIs on the fly
 class tkFactory:
@@ -76,21 +94,29 @@ class tkFactory:
          editFlag = False
 
       if editFlag is True:
-         child = self.addButton("Add Object", self.buttonPress, frame)
+         child = self.addButton("Add Object", self.addButtonPress, frame)
          children.append(child)
       return frame
 
    ##@brief dictionary button press
-   def buttonPress(self):
+   def addButtonPress(self, parent):
       self.buttonCount = self.buttonCount+1
       print( str(self.buttonCount ))
+      d = AddDialog(parent)
+      
+
+   ##@brief add a new dictionary item
+   def addItem( self, parent ):
+      print("Adding item")
+      
 
    ##@brief add a button
    def addButton( self, buttonText, callback, parent):
       print("Adding button:"+buttonText)
       frame = Frame(parent)
+      frame.parent = parent
       frame.pack()
-      button = Button( frame, text=buttonText, command = callback)
+      button = Button( frame, text=buttonText, command = lambda: callback(frame))
       button.pack()
 
       return frame

@@ -32,7 +32,7 @@ def main():
 
    #Create GUI
    window = tkFactory.tkFactory( template, 500, 500)
-   window.addObject( "test", template )
+   window.generate( "Test TK", template )
    window.start(windowCallback, 1000)
      
 

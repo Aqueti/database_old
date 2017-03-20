@@ -4,11 +4,115 @@ import json
 from tkinter import *
 from tkinter import ttk
 
-class AddDialog:
+##@brief adds a label
+def addLabel(labelText, parent, pos=LEFT ):
+   frame = Frame( parent)
+   frame.pack()
+   label = Label( frame, text=labelText )
+   label.pack( side = pos)
+   return frame
 
-    def __init__(self, parent):
+##
+# @brief    function to add a new object to the GUI. 
+#
+# This function adds an object to the widget pointed to by parent. 
+##
+def addObject( parent, key, template, value="" ):
+   if "edit" in template:
+      editFlag = template["edit"]
+   else:
+      editFlag = True
+
+   if template["type"] == "dictionary" or template["type"] == "template":
+      child = DictionaryNode( parent, key, template, value )
+   elif template["type"] == "string":
+      if "value" in template:
+         value = template["value"]
+      else:
+         value = "unknown"
+         child = TextBoxNode( parent, key, value, editFlag)
+   else:
+      return 0
+
+   return 1
+
+##@brief Create a dictionary object
+class DictionaryNode:
+   def __init__(self, parent, key, template, value ):
+      children = []
+      frame = Frame(parent)
+      frame.pack( expand = True )
+
+      #add a label at the top
+      child = addLabel(key, frame)
+      children.append(child)
+
+      #add the data
+      if "data" in template:
+         for k, v in template["data"].items():
+             child = addObject( frame, k, template["data"][k], value )
+             children.append(child)
+
+      if "edit" in template:
+         editFlag = template["edit"]
+      else:
+         editFlag = False
+
+      if editFlag is True:
+         child = ButtonNode( "AddObject", "Add Key", frame ) 
+#         children.append(child)
+
+   def updateFunction( self ):
+      print("Button Press")
+
+##@brief Class for a button node 
+class ButtonNode():     
+   def __init__(self, key, text, parent):
+      print("Key: "+key)
+      self.key = key
+      self.parent = parent 
+
+      frame = Frame(parent)
+      frame.pack()
+      self.button = Button( frame, text=text, command = lambda: self.pressCallback())
+      self.button.pack()
+
+   ##@brief callback fro when the button is pressed
+   def pressCallback( self ):
+      print("Button pressed:")
+
+##@brief class for a text box
+class TextBoxNode:
+   def __init__( self, parent, key, value, edit = True ):
+      self.parent = parent
+      frame = Frame( self.parent)
+      frame.pack()
+      frame.pack(fill = X)
+   
+      label = Label( frame, text=key)
+      label.pack( side = LEFT)
+      self.entry = Entry( frame )
+      self.entry.insert(0, value)
+      self.entry.pack( expand = True)
+
+      #if we are not editing, disable
+      if not edit:
+         self.entry.config(state = DISABLED )
+
+   ##@brief function to update parent (and return data)
+   def updateData(self):
+      value = self.entry.get()
+      self.parent.data[key] = value
+      return value
+
+
+##@brief Class for a popup window that allows creation of a new dialog
+class AddDialog:
+    ##@Initialization function
+    def __init__(self, parent ):
       #Add callback. 
-      self.top = Toplevel(parent)
+      self.parent = parent
+      self.top = Toplevel(self.parent)
       frame = Frame( self.top )
       frame.pack()
 
@@ -33,25 +137,28 @@ class AddDialog:
         self.top.destroy()
 
     def ok(self):
-        print("value is", self.var.get())
-#        self.callback(self.e.get())
+        data = {}
+        data["type"] = self.var.get()
+        self.parent.data.append(data)
         self.top.destroy()
 
 
 ##@brief class for creating TK GUIs on the fly
 class tkFactory:
    running = True
+   root       = -1
    components = {}
    loopCallback = ""
    loopDuration = 1000
    buttonCount = 0
+
    
    ##@brief intialize the main window and start the mainloop
    def __init__(self, template, width, height ):
       self.window = Tk()
       self.window.title(template["name"])
       self.window.geometry(str(width)+"x"+str(height))
-      self.name = "root"
+      self.window.data = {}
 
    ##@brief starts execution
    def start(self, callback, duration ):
@@ -67,51 +174,10 @@ class tkFactory:
          self.window.mainloop()
 
    ##@brief function to add a new object to the GUI. 
-   def addObject( self, name, template, value="", parent="" ):
-      count = 0
-      children = []
-      if parent == "":
-         parent = self.window
+   def generate( self, name, template, value="" ):
+      self.name = name
+      self.window.data = addObject( self.window, self.name, template, value )
 
-      if template["type"] == "dictionary" or template["type"] == "template":
-         child = self.addDictionary( template, parent, value )
-      if template["type"] == "string":
-         child = self.addTextBox( name, template, parent, value )
-      else:
-         return 0
-
-
-      children.append( child)
-      return children
-
-   ##@brief create a new dictionary form 
-   def addDictionary( self, template, parent, value={} ):
-      children = []
-      print("Adding dictionary")
-
-      frame = Frame(parent)
-      frame.pack( expand = True )
-
-      #add a label at the top
-      if "name" in template:
-         child = self.addLabel(template["name"], frame)
-         children.append(child)
-
-      #add the data
-      if "data" in template:
-         for k, v in template["data"].items():
-             child = self.addObject( k, template["data"][k], value, frame )
-             children.append(child)
-
-      if "edit" in template:
-         editFlag = template["edit"]
-      else:
-         editFlag = False
-
-      if editFlag is True:
-         child = self.addButton("Add Object", self.addButtonPress, frame)
-         children.append(child)
-      return frame
 
    ##@brief dictionary button press
    def addButtonPress(self, parent):
@@ -127,7 +193,6 @@ class tkFactory:
 
    ##@brief add a button
    def addButton( self, buttonText, callback, parent):
-      print("Adding button:"+buttonText)
       frame = Frame(parent)
       frame.parent = parent
       frame.pack()
@@ -137,13 +202,6 @@ class tkFactory:
       return frame
 
 
-   ##@brief adds a label
-   def addLabel(self, labelText, parent, pos=LEFT ):
-      frame = Frame( parent)
-      frame.pack()
-      label = Label( frame, text=labelText )
-      label.pack( side = pos)
-      return frame
 
 
    ##@brief add a text box

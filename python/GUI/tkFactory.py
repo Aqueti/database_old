@@ -12,6 +12,43 @@ def addLabel(labelText, parent, pos=LEFT ):
    label.pack( side = pos)
    return frame
 
+##@brief Class for a popup window that allows creation of a new dialog
+class AddDialog:
+    ##@Initialization function
+    def __init__(self, parent, callback ):
+      #Add callback. 
+      self.callback = callback
+      self.parent = parent
+      self.top = Toplevel(self.parent)
+      frame = Frame( self.top )
+      frame.pack()
+
+      #create a drop down with the supported type
+      widgetList = ["array", "dictionary", "string", "integer", "double"] 
+      self.var = StringVar(frame)
+      self.var.set("string")
+      self.w = OptionMenu(frame, self.var, *widgetList)
+      self.w.pack()
+
+      #Creatre a cancel button
+      cb = Button(self.top, text="Cancel", command=self.cancel)
+      cb.pack(pady=5)
+
+      #Creatre an OK button
+      b = Button(self.top, text="OK", command=self.ok)
+      b.pack(pady=5)
+
+    def cancel(self):
+        print("Cancelling")
+        self.top.destroy()
+
+    def ok(self):
+        value = self.var.get()
+        print("Value: "+str(value))
+        self.callback(value)
+        self.top.destroy()
+
+
 ##
 # @brief    function to add a new object to the GUI. 
 #
@@ -38,19 +75,23 @@ def addObject( parent, key, template, value="" ):
 
 ##@brief Create a dictionary object
 class DictionaryNode:
+   data = {}
    def __init__(self, parent, key, template, value ):
       children = []
-      frame = Frame(parent)
-      frame.pack( expand = True )
+      self.frame = Frame(parent)
+      self.frame.pack( expand = True )
+ 
+      
 
       #add a label at the top
-      child = addLabel(key, frame)
+      child = addLabel(key, self.frame)
       children.append(child)
 
       #add the data
       if "data" in template:
+         self.data = template["data"]     
          for k, v in template["data"].items():
-             child = addObject( frame, k, template["data"][k], value )
+             child = addObject( self.frame, k, template["data"][k], value )
              children.append(child)
 
       if "edit" in template:
@@ -59,27 +100,34 @@ class DictionaryNode:
          editFlag = False
 
       if editFlag is True:
-         child = ButtonNode( "AddObject", "Add Key", frame ) 
-#         children.append(child)
+         child = ButtonNode( "AddObject", "Add Key", self.frame, self.addKeyReqFunction ) 
 
-   def updateFunction( self ):
-      print("Button Press")
+
+   ##@brief Callback function for when a new button is pressed
+   def addKeyReqFunction( self ):
+      print("Adding dialog")
+      AddDialog( self.frame, self.addKeyFunction )
+
+   ##@brief Callback function for when a new button is pressed
+   def addKeyFunction( self, value):
+      print("Button Press of type:"+str(value))
+
 
 ##@brief Class for a button node 
 class ButtonNode():     
-   def __init__(self, key, text, parent):
+   def __init__(self, key, text, parent, callback):
       print("Key: "+key)
       self.key = key
       self.parent = parent 
 
       frame = Frame(parent)
       frame.pack()
-      self.button = Button( frame, text=text, command = lambda: self.pressCallback())
+      self.button = Button( frame, text=text, command = lambda: callback())
       self.button.pack()
 
    ##@brief callback fro when the button is pressed
    def pressCallback( self ):
-      print("Button pressed:")
+      print("Key: "+str(key))
 
 ##@brief class for a text box
 class TextBoxNode:
@@ -104,43 +152,6 @@ class TextBoxNode:
       value = self.entry.get()
       self.parent.data[key] = value
       return value
-
-
-##@brief Class for a popup window that allows creation of a new dialog
-class AddDialog:
-    ##@Initialization function
-    def __init__(self, parent ):
-      #Add callback. 
-      self.parent = parent
-      self.top = Toplevel(self.parent)
-      frame = Frame( self.top )
-      frame.pack()
-
-      #create a drop down with the supported type
-      widgetList = ["array", "dictionary", "string", "integer", "double"] 
-      self.var = StringVar(frame)
-      self.var.set("string")
-      self.w = OptionMenu(frame, self.var, *widgetList)
-      self.w.pack()
-
-      #Creatre a cancel button
-      cb = Button(self.top, text="Cancel", command=self.cancel)
-      cb.pack(pady=5)
-
-      #Creatre an OK button
-      b = Button(self.top, text="OK", command=self.ok)
-      b.pack(pady=5)
-
-    def cancel(self):
-        print("Cancelling")
-#        self.callback(self.e.get())
-        self.top.destroy()
-
-    def ok(self):
-        data = {}
-        data["type"] = self.var.get()
-        self.parent.data.append(data)
-        self.top.destroy()
 
 
 ##@brief class for creating TK GUIs on the fly
@@ -178,13 +189,6 @@ class tkFactory:
       self.name = name
       self.window.data = addObject( self.window, self.name, template, value )
 
-
-   ##@brief dictionary button press
-   def addButtonPress(self, parent):
-      self.buttonCount = self.buttonCount+1
-      print( str(self.buttonCount ))
-      d = AddDialog(parent)
-      
 
    ##@brief add a new dictionary item
    def addItem( self, parent ):

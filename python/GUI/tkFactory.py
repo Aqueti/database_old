@@ -138,7 +138,7 @@ def addObject( parent, key, template, value="" ):
       if "value" in template:
          value = template["value"]
       else:
-         value = "unknown"
+         value = ""
 
       child = TextBoxNode( parent, key, value, editFlag)
       parent.pack()
@@ -174,21 +174,21 @@ class DictionaryNode(BaseObject):
    def __init__(self, parent, key, template, value ):
       BaseObject.__init__(self, key )
 
-      children = []
       self.frame = tk.Frame(parent)
       self.frame.pack( expand = True )
-      self.parent = parent
+
+      self.dataFrame = tk.Frame(self.frame)
+      self.dataFrame.pack( expand = True )
+#      self.parent = parent
 
       #add a label at the top
-      child = addLabel(key, self.frame)
-      children.append(child)
+      addLabel(key, self.frame)
 
       #add the data
       if "data" in template:
          self.data = template["data"]     
          for k, v in template["data"].items():
-             child = addObject( self.frame, k, template["data"][k], value )
-             children.append(child)
+             addObject( self.dataFrame, k, template["data"][k], value )
 
       if "edit" in template:
          editFlag = template["edit"]
@@ -196,22 +196,21 @@ class DictionaryNode(BaseObject):
          editFlag = False
 
       if editFlag is True:
-         child = ButtonNode( "AddObject", "Add Key", self.frame, self.addKeyReqFunction ) 
+         ButtonNode( "AddObject", "Add Key", self.frame, self.addKeyReqFunction ) 
 
 
    ##@brief Callback function for when a new button is pressed
    def addKeyReqFunction( self ):
-      AddDialog( self.frame, self.addKeyFunction )
+      AddDialog( self.dataFrame, self.addKeyFunction )
 
    ##@brief Callback function for when a new button is pressed
    def addKeyFunction( self, data):
-      addObject( self.parent, data["value"], data )
+      addObject( self.dataFrame, data["key"], data )
 
 
 ##@brief Class for a button node 
 class ButtonNode():     
    def __init__(self, key, text, parent, callback):
-      print("Key: "+key)
       self.key = key
 
       frame = tk.Frame(parent)
@@ -241,8 +240,8 @@ class TextBoxNode(BaseObject):
 
    def getData( self ):
       data = {}
-      data["key"] = self.key
-      data["value"] = self.entry.get()
+      data["key"] = self.entry.get()
+#      data["value"] = self.entry.get()
       return data
 
 
@@ -268,9 +267,9 @@ class tkFactory(BaseObject):
       self.window.title(template["name"])
       self.window.geometry(str(width)+"x"+str(height))
       self.window.data = {}
-
+  
       self.frame = tk.Frame(self.window)
-      self.all_instances = FrameGroup( self.frame )
+      self.frame.pack()
 
    ##@brief starts execution
    def start(self, callback, duration ):
@@ -290,48 +289,3 @@ class tkFactory(BaseObject):
       self.name = name
       self.frame.pack()
       self.window.data = addObject( self.frame, self.name, template, value )
-
-
-   ##@brief add a new dictionary item
-   def addItem( self, parent ):
-      print("Adding item")
-      
-
-   ##@brief add a button
-   def addButton( self, buttonText, callback, parent):
-      frame = tk.Frame(parent)
-      frame.parent = parent
-      frame.pack()
-      button = tk.Button( frame, text=buttonText, command = lambda: callback(frame))
-      button.pack()
-
-      return frame
-
-
-
-
-#   ##@brief add a text box
-#   def addTextBox( self, labelText, template, parent, value=""):
-#      if "edit" in template:
-#         print( str(template["edit"]))
-#         editFlag = template["edit"]
-#         print("Edit found and is "+str(editFlag))
-#      else:
-#         print("Edit found and False")
-#         editFlag = True
-#
-#      frame = tk.Frame( parent)
-#      frame.pack()
-#      frame.pack(fill = X)
-# 
-#      label = tk.Label( frame, text=labelText)
-#      label.pack( side = LEFT)
-#      entry = tk.Entry( frame )
-#      entry.pack( expand = True)
-#
-#      if not editFlag:
-#         entry.config(state = tk.DISABLED )
-#
-#      return frame
-   
-

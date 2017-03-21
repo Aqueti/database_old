@@ -179,7 +179,6 @@ class DictionaryNode(BaseObject):
 
       self.dataFrame = tk.Frame(self.frame)
       self.dataFrame.pack( expand = True )
-#      self.parent = parent
 
       #add a label at the top
       addLabel(key, self.frame)
@@ -198,7 +197,6 @@ class DictionaryNode(BaseObject):
       if editFlag is True:
          ButtonNode( "AddObject", "Add Key", self.frame, self.addKeyReqFunction ) 
 
-
    ##@brief Callback function for when a new button is pressed
    def addKeyReqFunction( self ):
       AddDialog( self.dataFrame, self.addKeyFunction )
@@ -210,6 +208,7 @@ class DictionaryNode(BaseObject):
 
 ##@brief Class for a button node 
 class ButtonNode():     
+   ##@brief initialization function
    def __init__(self, key, text, parent, callback):
       self.key = key
 
@@ -238,18 +237,18 @@ class TextBoxNode(BaseObject):
       if not edit:
          self.entry.config(state = tk.DISABLED )
 
+   #get the data from the object
    def getData( self ):
       data = {}
       data["key"] = self.entry.get()
-#      data["value"] = self.entry.get()
       return data
 
 
    ##@brief function to update parent (and return data)
-   #def updateData(self):
-   #   value = self.entry.get()
-   #   self.parent.data[key] = value
-   #   return value
+   def updateData(self):
+      value = self.entry.get()
+      self.parent.data[key] = value
+      return value
 
 
 ##@brief class for creating TK GUIs on the fly
@@ -286,6 +285,7 @@ class tkFactory(BaseObject):
 
    ##@brief function to add a new object to the GUI. 
    def generate( self, name, template, value="" ):
+      self.data = {}
       self.name = name
       self.frame.pack()
       self.window.data = addObject( self.frame, self.name, template, value )

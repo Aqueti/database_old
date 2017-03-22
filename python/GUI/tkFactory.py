@@ -127,24 +127,25 @@ class AddDialog:
 # @param    key the key that the widget represents
 # @param    template a dictionary that indicates what kind of data there is
 # @param    value to assign to the specified key
+# @param    cb callback function to call on change
 #
 # This function adds an object to the widget pointed to by parent. 
 ##
-def addObject( parent, key, template, value):
+def addObject( parent, key, template, value = None, cb = None):
    if "edit" in template:
       editFlag = template["edit"]
    else:
       editFlag = True
 
    if template["type"] == "dictionary" or template["type"] == "template":
-      child = DictionaryNode( parent, key, template, value )
+      child = DictionaryNode( parent, template, key, value, cb )
    elif template["type"] == "string":
       if "value" in template:
          value = template["value"]
       else:
          value = ""
 
-      child = TextBoxNode( parent, key, value, editFlag)
+      child = TextBoxNode( parent, key, value, cb, editFlag)
       parent.pack()
    else:
       return 0
@@ -153,19 +154,30 @@ def addObject( parent, key, template, value):
 
 ##@brief base class for extracting data from components
 class BaseObject:
-   data = {}
-   parent = None
+   data = {}                        ## @var data structure with current value
+   parent = None                    ## @var reference to the parent widget
+   key = ""                         ## @var key to reference this object
+   cb = None                        ## @var callback for when change occurs
 
-   ##@brief Initialization function specifies the key
-   def __init__(self, key ):
+   ##
+   # @brief Initialization function specifies the key
+   #
+   # @param key Name of the object
+   # @param value value of the object
+   # @param cb callback function to call on change
+   #
+   def __init__(self, parent, key, value = None, cb = None):
+      self.parent = parent
       self.key = key
+      self.cb = cb
+
+      if value:
+         self.data = value
 
    ##@brief function to update data
    def updateData( self, key, value ):
-      self.data[key] = value
-     
-      if self.parent:
-         parent.updateData( key, self.data )
+      if self.cb:
+         cb( key, self.data )
 
 ##@brief Create a dictionary object
 #
@@ -175,8 +187,9 @@ class BaseObject:
 # @param value an object that matches the template teh contains the object value(s)
 class DictionaryNode(BaseObject):
    data = {}
-   def __init__(self, parent, key, template, value ):
-      BaseObject.__init__(self, key )
+   def __init__(self, parent, template, key, value = None, cb = None ):
+
+      BaseObject.__init__(self, parent, key, value, cb)
 
       self.frame = tk.Frame(parent)
       self.frame.pack( expand = True )
@@ -192,7 +205,7 @@ class DictionaryNode(BaseObject):
       if "data" in template:
          self.data = template["data"]     
          for k, v in template["data"].items():
-             addObject( self.dataFrame, k, template["data"][k], value )
+             addObject( self.dataFrame, k, template["data"][k], value, self.changeCallback )
 
       if "edit" in template:
          editFlag = template["edit"]
@@ -203,8 +216,8 @@ class DictionaryNode(BaseObject):
       if editFlag is True:
          ButtonNode( "AddObject", "Add Element", self.frame, self.addKeyReqFunction ) 
 
-
-
+   def changeCallback( self, key, value):
+      print("Output: {"+str(key)+":"+str(value)+"}")
 
    ##@brief Callback function for when a new button is pressed
    def addKeyReqFunction( self ):
@@ -212,7 +225,7 @@ class DictionaryNode(BaseObject):
 
    ##@brief Callback function for when a new button is pressed
    def addKeyFunction( self, data):
-      addObject( self.dataFrame, data["key"], data, "" )
+      addObject( self.dataFrame, data["key"], data, self.changeCallback )
 
 
 
@@ -229,7 +242,8 @@ class ButtonNode():
 
 ##@brief class for a text box
 class TextBoxNode(BaseObject):
-   def __init__( self, parent, key, value, edit = True ):
+   def __init__( self, parent, key, value, cb, edit = True ):
+      BaseObject.__init__(self, parent, key, value, cb)
       self.parent = parent
       self.key = key
 
@@ -242,6 +256,7 @@ class TextBoxNode(BaseObject):
       self.entry = tk.Entry( frame )
       self.entry.insert(0, value)
       self.entry.pack( expand = True)
+      self.entry.bind(self.updateData)
 
       #if we are not editing, disable
       if not edit:
@@ -249,6 +264,7 @@ class TextBoxNode(BaseObject):
 
    #get the data from the object
    def getData( self ):
+
       data = {}
       data["key"] = self.entry.get()
       return data
@@ -257,12 +273,13 @@ class TextBoxNode(BaseObject):
    ##@brief function to update parent (and return data)
    def updateData(self):
       value = self.entry.get()
-      self.parent.data[key] = value
+      print("Update!!!")
+      self.cb(key, value );
       return value
 
 
 ##@brief class for creating TK GUIs on the fly
-class tkFactory(BaseObject):
+class tkFactory():
    running = True
    root         = -1
    loopCallback = ""
@@ -270,8 +287,6 @@ class tkFactory(BaseObject):
 
    ##@brief initialize the main window and start the mainloop
    def __init__(self, template, width, height ):
-      BaseObject.__init__(self, "root" )
- 
       self.window = tk.Tk()
       self.window.title(template["name"])
       self.window.geometry(str(width)+"x"+str(height))
@@ -299,6 +314,7 @@ class tkFactory(BaseObject):
       self.name = name
       self.frame.pack()
       addLabel(self.name, self.frame)
+
       self.window.data = addObject( self.frame, "", template, value="" )
 
       ButtonNode( "AddDoc", "New Document", self.frame, self.addDocFunction ) 

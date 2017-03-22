@@ -3,7 +3,8 @@ This repository includes tools for access a mongodb server and generating a webp
 
 #Requirements
 sudo apt install python-socketio
-sudo pip install pymongo
+sudo apt install python-pymongo
+sudo apt install python3-tk
 
 
 #Make sure to run the correct gevent version

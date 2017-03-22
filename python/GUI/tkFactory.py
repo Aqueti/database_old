@@ -7,10 +7,9 @@ from tkinter import ttk
 ##@brief adds a label
 def addLabel(labelText, parent, pos=tk.LEFT ):
    frame = tk.Frame( parent)
-   frame.pack()
    label = tk.Label( frame, text=labelText )
    label.pack( side = pos)
-   return frame
+   frame.pack()
 
 ##@brief class to handle a group of frames
 class FrameGroup(tk.Frame):
@@ -124,9 +123,14 @@ class AddDialog:
 ##
 # @brief    function to add a new object to the GUI. 
 #
+# @param    parent widget that the generated content will be assigned to
+# @param    key the key that the widget represents
+# @param    template a dictionary that indicates what kind of data there is
+# @param    value to assign to the specified key
+#
 # This function adds an object to the widget pointed to by parent. 
 ##
-def addObject( parent, key, template, value="" ):
+def addObject( parent, key, template, value):
    if "edit" in template:
       editFlag = template["edit"]
    else:
@@ -177,11 +181,12 @@ class DictionaryNode(BaseObject):
       self.frame = tk.Frame(parent)
       self.frame.pack( expand = True )
 
+
       self.dataFrame = tk.Frame(self.frame)
       self.dataFrame.pack( expand = True )
 
       #add a label at the top
-      addLabel(key, self.frame)
+      addLabel(key, self.dataFrame)
 
       #add the data
       if "data" in template:
@@ -194,8 +199,12 @@ class DictionaryNode(BaseObject):
       else:
          editFlag = False
 
+
       if editFlag is True:
-         ButtonNode( "AddObject", "Add Key", self.frame, self.addKeyReqFunction ) 
+         ButtonNode( "AddObject", "Add Element", self.frame, self.addKeyReqFunction ) 
+
+
+
 
    ##@brief Callback function for when a new button is pressed
    def addKeyReqFunction( self ):
@@ -203,7 +212,8 @@ class DictionaryNode(BaseObject):
 
    ##@brief Callback function for when a new button is pressed
    def addKeyFunction( self, data):
-      addObject( self.dataFrame, data["key"], data )
+      addObject( self.dataFrame, data["key"], data, "" )
+
 
 
 ##@brief Class for a button node 
@@ -288,4 +298,11 @@ class tkFactory(BaseObject):
       self.data = {}
       self.name = name
       self.frame.pack()
-      self.window.data = addObject( self.frame, self.name, template, value )
+      addLabel(self.name, self.frame)
+      self.window.data = addObject( self.frame, "", template, value="" )
+
+      ButtonNode( "AddDoc", "New Document", self.frame, self.addDocFunction ) 
+
+   ##@brief Callback to insert add document to the database
+   def addDocFunction(self):
+      print("Insert document:\n"+str(self.data))

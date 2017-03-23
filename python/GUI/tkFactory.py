@@ -217,7 +217,10 @@ class DictionaryNode(BaseObject):
          ButtonNode( "AddObject", "Add Element", self.frame, self.addKeyReqFunction ) 
 
    def changeCallback( self, key, value):
-      print("Output: {"+str(key)+":"+str(value)+"}")
+      self.data[key] = value
+
+      if self.cb:
+         self.cb( self.key, self.data)
 
    ##@brief Callback function for when a new button is pressed
    def addKeyReqFunction( self ):
@@ -226,7 +229,6 @@ class DictionaryNode(BaseObject):
    ##@brief Callback function for when a new button is pressed
    def addKeyFunction( self, data):
       addObject( self.dataFrame, data["key"], data, self.changeCallback )
-
 
 
 ##@brief Class for a button node 
@@ -253,7 +255,12 @@ class TextBoxNode(BaseObject):
    
       label = tk.Label( frame, text=key)
       label.pack( side = tk.LEFT)
+
+      sv = tk.StringVar()
+      sv.set(str(value))
+      sv.trace("w", self.getData)
       self.entry = tk.Entry( frame )
+      self.entry.bind("<Return>", self.getData)
       self.entry.insert(0, value)
       self.entry.pack( expand = True)
       self.entry.bind(self.updateData)
@@ -263,19 +270,16 @@ class TextBoxNode(BaseObject):
          self.entry.config(state = tk.DISABLED )
 
    #get the data from the object
-   def getData( self ):
-
-      data = {}
-      data["key"] = self.entry.get()
-      return data
-
+   def getData( self, event = None ):
+      value = self.entry.get()
+      self.updateData( self.key, value)
 
    ##@brief function to update parent (and return data)
-   def updateData(self):
-      value = self.entry.get()
-      print("Update!!!")
-      self.cb(key, value );
-      return value
+   def updateData(self, key, value ):
+      print ("Textbox updating data")
+
+      if self.cb:
+         self.cb(self.key, value )
 
 
 ##@brief class for creating TK GUIs on the fly
@@ -315,10 +319,15 @@ class tkFactory():
       self.frame.pack()
       addLabel(self.name, self.frame)
 
-      self.window.data = addObject( self.frame, "", template, value="" )
+      self.window.data = addObject( self.frame, "", template, "", self.updateCallback )
 
-      ButtonNode( "AddDoc", "New Document", self.frame, self.addDocFunction ) 
+      ButtonNode( "AddDoc", "Save", self.frame, self.addDocFunction ) 
 
    ##@brief Callback to insert add document to the database
    def addDocFunction(self):
       print("Insert document:\n"+str(self.data))
+
+   ##@brief Callback that is triggered when a widget updates
+   def updateCallback( self, key, value ):
+      self.data = value
+      print("Value: "+str(value))

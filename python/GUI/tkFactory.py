@@ -148,7 +148,7 @@ def addObject( parent, key, template, value = None, cb = None):
       child = TextBoxNode( parent, key, value, cb, editFlag)
       parent.pack()
    else:
-      return 0
+      return child
 
    return 1
 
@@ -176,8 +176,13 @@ class BaseObject:
 
    ##@brief function to update data
    def updateData( self, key, value ):
+      data[key] = value
       if self.cb:
-         cb( key, self.data )
+         self.cb( key, self.data )
+
+   def getData( self ):
+      if self.cb:
+         self.cb( self.key, self.data )
 
 ##@brief Create a dictionary object
 #
@@ -260,6 +265,7 @@ class TextBoxNode(BaseObject):
       sv.set(str(value))
       sv.trace("w", self.getData)
       self.entry = tk.Entry( frame )
+      self.entry.bind("<FocusOut>", self.getData)
       self.entry.bind("<Return>", self.getData)
       self.entry.insert(0, value)
       self.entry.pack( expand = True)
@@ -319,7 +325,7 @@ class tkFactory():
       self.frame.pack()
       addLabel(self.name, self.frame)
 
-      self.window.data = addObject( self.frame, "", template, "", self.updateCallback )
+      self.data = addObject( self.frame, "", template, "", self.updateCallback )
 
       ButtonNode( "AddDoc", "Save", self.frame, self.addDocFunction ) 
 
@@ -331,3 +337,5 @@ class tkFactory():
    def updateCallback( self, key, value ):
       self.data = value
       print("Value: "+str(value))
+
+

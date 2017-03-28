@@ -11,58 +11,10 @@ def addLabel(labelText, parent, pos=tk.LEFT ):
    label.pack( side = pos)
    frame.pack()
 
-##@brief class to handle a group of frames
-class FrameGroup(tk.Frame):
-    def __init__(self, parent):
-        tk.Frame.__init__(self, parent)
-        self.all_instances = []
-        self.counter = 0
-
-    def Add(self):
-        self.counter += 1
-        name = "tk.Frame %s" % self.counter 
-        subframe = Subframe(self, name=name)
-        subframe.pack(side="left", fill="y")
-        self.all_instances.append(subframe)
-
-    def Remove(self, instance):
-        # don't allow the user to destroy the last item
-        if len(self.all_instances) > 1:
-            index = self.all_instances.index(instance)
-            subframe = self.all_instances.pop(index)
-            subframe.destroy()
-
-    def HowMany(self):
-        return len(self.all_instances)
-
-    def ShowMe(self):
-        for instance in self.all_instances:
-            print(instance.get())
-
-##@brief Subframe class
-class Subframe(tk.Frame):
-    def __init__(self, parent, name):
-        tk.Frame.__init__(self, parent)
-        self.parent = parent
-        self.e1 = tk.Entry(self)
-        self.e2 = tk.Entry(self)
-        self.e3 = tk.Entry(self)
-        label = tk.Label(self, text=name, anchor="center")
-        add_button = tk.Button(self, text="Add", command=self.parent.Add)
-        remove_button = tk.Button(self, text="Remove", command=lambda: self.parent.Remove(self))
-
-        label.pack(side="top", fill="x")
-        self.e1.pack(side="top", fill="x")
-        self.e2.pack(side="top", fill="x")
-        self.e3.pack(side="top", fill="x")
-        add_button.pack(side="top")
-        remove_button.pack(side="top")
-
-    def get(self):
-        return (self.e1.get(), self.e2.get(), self.e3.get())
-
 ##@brief Class for a popup window that allows creation of a new dialog
 class AddDialog:
+    children = []
+    data = {}
     ##@Initialization function
     def __init__(self, parent, callback ):
       #Add callback. 
@@ -72,7 +24,7 @@ class AddDialog:
       frame = tk.Frame( self.top )
       frame.pack()
 
-      self.keyTextBox = TextBoxNode( frame, "key:", "", True)
+      self.keyTextBox = TextBoxNode( frame, "key", "", None, True)
 
       #create a drop down with the supported type
       widgetList = ["array", "dictionary", "string", "integer", "double"] 
@@ -105,16 +57,26 @@ class AddDialog:
       b = tk.Button(self.top, text="OK", command=self.ok)
       b.pack(pady=5)
 
+
+    ##@brief cancel button callback
     def cancel(self):
         print("Cancelling")
         self.top.destroy()
 
+    ##@brief accept button callback
     def ok(self):
-        data             = self.keyTextBox.getData()
+        data = {}
+        result = self.keyTextBox.getData()
+        print("Result: "+str(result))
+        for k in result:
+           print("K:"+str(k))
+           data[k]= result[k]
         data["type"]     = self.typeField.get()
         data["edit"]     = bool(self.editFlag.get())
         data["required"] = bool(self.requiredFlag.get())
         data["auto"]     = bool(self.autoFlag.get())
+
+        print("Data: "+str(data))
 
         self.callback(data)
         self.top.destroy()
@@ -148,16 +110,18 @@ def addObject( parent, key, template, value = None, cb = None):
       child = TextBoxNode( parent, key, value, cb, editFlag)
       parent.pack()
    else:
-      return child
-
-   return 1
+      child = None
+   
+   return child
 
 ##@brief base class for extracting data from components
 class BaseObject:
-   data = {}                        ## @var data structure with current value
+   type   = None                    ## @var type of object
    parent = None                    ## @var reference to the parent widget
-   key = ""                         ## @var key to reference this object
+   key = None                       ## @var key to reference this object
+   value = None                     ## @var current value of this object
    cb = None                        ## @var callback for when change occurs
+   children = []                    ## @var array of child objects
 
    ##
    # @brief Initialization function specifies the key
@@ -172,17 +136,14 @@ class BaseObject:
       self.cb = cb
 
       if value:
-         self.data = value
+         self.value = value
 
    ##@brief function to update data
-   def updateData( self, key, value ):
-      data[key] = value
+   def updateData( self, value ):
+      self.value = value
       if self.cb:
-         self.cb( key, self.data )
+         self.cb( key, value )
 
-   def getData( self ):
-      if self.cb:
-         self.cb( self.key, self.data )
 
 ##@brief Create a dictionary object
 #
@@ -195,6 +156,13 @@ class DictionaryNode(BaseObject):
    def __init__(self, parent, template, key, value = None, cb = None ):
 
       BaseObject.__init__(self, parent, key, value, cb)
+
+      self.cb = cb
+      
+      if value: 
+         self.value = value
+      else:
+         self.value = {}
 
       self.frame = tk.Frame(parent)
       self.frame.pack( expand = True )
@@ -210,7 +178,9 @@ class DictionaryNode(BaseObject):
       if "data" in template:
          self.data = template["data"]     
          for k, v in template["data"].items():
-             addObject( self.dataFrame, k, template["data"][k], value, self.changeCallback )
+             child = addObject( self.dataFrame, k, template["data"][k], value, self.updateData )
+             print("Added child with key: "+str(k))
+             self.children.append(child)
 
       if "edit" in template:
          editFlag = template["edit"]
@@ -221,11 +191,28 @@ class DictionaryNode(BaseObject):
       if editFlag is True:
          ButtonNode( "AddObject", "Add Element", self.frame, self.addKeyReqFunction ) 
 
-   def changeCallback( self, key, value):
-      self.data[key] = value
-
+   ##@brief function to update data
+   def updateData( self, key, value ):
+      self.value[key] = value 
       if self.cb:
-         self.cb( self.key, self.data)
+         self.cb( key, self.data )
+
+   def getData( self ):
+      for child in self.children:
+         item = child.getData()
+         for k in item:
+            print("Getting value for "+str(k))
+            self.value[k] = item[k]
+
+      print("Dictionary result for "+str(self.key)+":"+str(self.value))
+      if self.cb:
+         self.cb( self.key, self.value)
+
+      result = {} 
+      result[key] = self.value
+
+         
+   
 
    ##@brief Callback function for when a new button is pressed
    def addKeyReqFunction( self ):
@@ -233,7 +220,10 @@ class DictionaryNode(BaseObject):
 
    ##@brief Callback function for when a new button is pressed
    def addKeyFunction( self, data):
-      addObject( self.dataFrame, data["key"], data, self.changeCallback )
+      print("Adding "+str(data))
+      child = addObject( self.dataFrame, data["key"], data, self.updateData)
+      print("Added child with key: "+str(data["key"]))
+      self.children.append(child)
 
 
 ##@brief Class for a button node 
@@ -251,8 +241,14 @@ class ButtonNode():
 class TextBoxNode(BaseObject):
    def __init__( self, parent, key, value, cb, edit = True ):
       BaseObject.__init__(self, parent, key, value, cb)
+      self.type = "string"
       self.parent = parent
       self.key = key
+
+      if value:
+         self.value = value
+      else:
+         self.value = ""
 
       frame = tk.Frame( self.parent)
       frame.pack()
@@ -263,33 +259,36 @@ class TextBoxNode(BaseObject):
 
       sv = tk.StringVar()
       sv.set(str(value))
-      sv.trace("w", self.getData)
+      sv.trace("w", self.dataChangeCallback)
       self.entry = tk.Entry( frame )
-      self.entry.bind("<FocusOut>", self.getData)
-      self.entry.bind("<Return>", self.getData)
+      self.entry.bind("<FocusOut>", self.dataChangeCallback)
+      self.entry.bind("<Return>", self.dataChangeCallback)
       self.entry.insert(0, value)
       self.entry.pack( expand = True)
-      self.entry.bind(self.updateData)
+#      self.entry.bind(self.changed)
 
       #if we are not editing, disable
       if not edit:
          self.entry.config(state = tk.DISABLED )
 
+
    #get the data from the object
-   def getData( self, event = None ):
-      value = self.entry.get()
-      self.updateData( self.key, value)
+   def dataChangeCallback( self, event = None ):
+      self.value = self.entry.get()
+      self.updateData( self.value)
 
-   ##@brief function to update parent (and return data)
-   def updateData(self, key, value ):
-      print ("Textbox updating data")
+   def getData( self ):
+      self.value = self.entry.get()
+      result = {}
+      result[self.key] = self.value 
+      print("TextBox result for "+str(self.key)+": "+str(result))
+      return result
 
-      if self.cb:
-         self.cb(self.key, value )
+      
 
 
 ##@brief class for creating TK GUIs on the fly
-class tkFactory():
+class tkFactory(BaseObject):
    running = True
    root         = -1
    loopCallback = ""
@@ -303,6 +302,8 @@ class tkFactory():
       self.window.data = {}
   
       self.frame = tk.Frame(self.window)
+      BaseObject.__init__(self, self.frame, "root", None, None)
+      self.value = {}
       self.frame.pack()
 
    ##@brief starts execution
@@ -325,17 +326,35 @@ class tkFactory():
       self.frame.pack()
       addLabel(self.name, self.frame)
 
-      self.data = addObject( self.frame, "", template, "", self.updateCallback )
+ 
+      child = addObject( self.frame, "", template, "", self.updateData)
+      self.children.append(child)
 
       ButtonNode( "AddDoc", "Save", self.frame, self.addDocFunction ) 
 
    ##@brief Callback to insert add document to the database
    def addDocFunction(self):
-      print("Insert document:\n"+str(self.data))
+      result = self.getAllData()
+      print("Insert document:\n"+str(result))
 
    ##@brief Callback that is triggered when a widget updates
    def updateCallback( self, key, value ):
       self.data = value
       print("Value: "+str(value))
 
+   def getAllData( self ):
+      for child in self.children:
+         item = child.getData()
+
+         for k in item:
+            print("Key:"+str(k)+", item:"+str(item))
+            self.value[k] = item[k]
+
+      if self.cb:
+         self.cb( self.key, self.value)
+
+
+      result = {}
+      result[self.key] = self.value
+      return result
 

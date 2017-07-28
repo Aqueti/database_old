@@ -11,58 +11,10 @@ def addLabel(labelText, parent, pos=tk.LEFT ):
    label.pack( side = pos)
    frame.pack()
 
-##@brief class to handle a group of frames
-class FrameGroup(tk.Frame):
-    def __init__(self, parent):
-        tk.Frame.__init__(self, parent)
-        self.all_instances = []
-        self.counter = 0
-
-    def Add(self):
-        self.counter += 1
-        name = "tk.Frame %s" % self.counter 
-        subframe = Subframe(self, name=name)
-        subframe.pack(side="left", fill="y")
-        self.all_instances.append(subframe)
-
-    def Remove(self, instance):
-        # don't allow the user to destroy the last item
-        if len(self.all_instances) > 1:
-            index = self.all_instances.index(instance)
-            subframe = self.all_instances.pop(index)
-            subframe.destroy()
-
-    def HowMany(self):
-        return len(self.all_instances)
-
-    def ShowMe(self):
-        for instance in self.all_instances:
-            print(instance.get())
-
-##@brief Subframe class
-class Subframe(tk.Frame):
-    def __init__(self, parent, name):
-        tk.Frame.__init__(self, parent)
-        self.parent = parent
-        self.e1 = tk.Entry(self)
-        self.e2 = tk.Entry(self)
-        self.e3 = tk.Entry(self)
-        label = tk.Label(self, text=name, anchor="center")
-        add_button = tk.Button(self, text="Add", command=self.parent.Add)
-        remove_button = tk.Button(self, text="Remove", command=lambda: self.parent.Remove(self))
-
-        label.pack(side="top", fill="x")
-        self.e1.pack(side="top", fill="x")
-        self.e2.pack(side="top", fill="x")
-        self.e3.pack(side="top", fill="x")
-        add_button.pack(side="top")
-        remove_button.pack(side="top")
-
-    def get(self):
-        return (self.e1.get(), self.e2.get(), self.e3.get())
-
 ##@brief Class for a popup window that allows creation of a new dialog
 class AddDialog:
+    data = {}
+
     ##@Initialization function
     def __init__(self, parent, callback ):
       #Add callback. 
@@ -72,7 +24,7 @@ class AddDialog:
       frame = tk.Frame( self.top )
       frame.pack()
 
-      self.keyTextBox = TextBoxNode( frame, "key:", "", True)
+      self.keyTextBox = TextBoxNode( frame, "key", None, self.update, True)
 
       #create a drop down with the supported type
       widgetList = ["array", "dictionary", "string", "integer", "double"] 
@@ -96,6 +48,7 @@ class AddDialog:
       self.autoButton.deselect()
       self.autoButton.pack()
 
+      self.descTextBox = TextBoxNode( frame, "Description", None, self.update, True)
 
       #Creatre a cancel button
       cb = tk.Button(self.top, text="Cancel", command=self.cancel)
@@ -105,18 +58,38 @@ class AddDialog:
       b = tk.Button(self.top, text="OK", command=self.ok)
       b.pack(pady=5)
 
+    def update(self, key, value):
+      print("Key: "+key+", Value:"+str(value))
+
+      if value is not None:
+         self.data[key] = value
+
     def cancel(self):
         print("Cancelling")
         self.top.destroy()
 
     def ok(self):
-        data             = self.keyTextBox.getData()
-        data["type"]     = self.typeField.get()
-        data["edit"]     = bool(self.editFlag.get())
-        data["required"] = bool(self.requiredFlag.get())
-        data["auto"]     = bool(self.autoFlag.get())
+        output = {}
+        value = self.keyTextBox.getData()
+        print("OK Value: "+str(value))
+        for k in value:
+           print("Key: "+str(k)+", Value:"+str(value[k]))
 
-        self.callback(data)
+           if value[k] is not None:
+               output[k] = value[k]
+        
+           value = self.descTextBox.getData()
+           for k in value:
+              print("Key: "+str(k)+", Value:"+str(value[k]))
+              if value[k] is not None:
+                  output[k] = value[k]
+        
+        output["type"]     = self.typeField.get()
+        output["edit"]     = bool(self.editFlag.get())
+        output["required"] = bool(self.requiredFlag.get())
+        output["auto"]     = bool(self.autoFlag.get())
+       
+#sdf         self.callback(output)
         self.top.destroy()
 
 
@@ -156,7 +129,8 @@ def addObject( parent, key, template, value = None, cb = None):
 class BaseObject:
    data = {}                        ## @var data structure with current value
    parent = None                    ## @var reference to the parent widget
-   key = ""                         ## @var key to reference this object
+   key = None                         ## @var key to reference this object
+   value = None                         ## @var key to reference this object
    cb = None                        ## @var callback for when change occurs
 
    ##
@@ -176,13 +150,16 @@ class BaseObject:
 
    ##@brief function to update data
    def updateData( self, key, value ):
-      data[key] = value
+      self.data[key] = value
       if self.cb:
-         self.cb( key, self.data )
+         self.cb( key, self.value)
 
    def getData( self ):
       if self.cb:
-         self.cb( self.key, self.data )
+         self.cb( self.key, self.value )
+      data = {}
+      data[self.key] = self.value
+      return data
 
 ##@brief Create a dictionary object
 #
@@ -262,11 +239,14 @@ class TextBoxNode(BaseObject):
       label.pack( side = tk.LEFT)
 
       sv = tk.StringVar()
-      sv.set(str(value))
+
+      if not value:
+        value = ""
+      sv.set(str(""))
       sv.trace("w", self.getData)
       self.entry = tk.Entry( frame )
-      self.entry.bind("<FocusOut>", self.getData)
-      self.entry.bind("<Return>", self.getData)
+      self.entry.bind("<FocusOut>", self.readData)
+      self.entry.bind("<Return>", self.readData)
       self.entry.insert(0, value)
       self.entry.pack( expand = True)
       self.entry.bind(self.updateData)
@@ -276,7 +256,7 @@ class TextBoxNode(BaseObject):
          self.entry.config(state = tk.DISABLED )
 
    #get the data from the object
-   def getData( self, event = None ):
+   def readData( self, update = True):
       value = self.entry.get()
       self.updateData( self.key, value)
 

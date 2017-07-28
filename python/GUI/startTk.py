@@ -25,7 +25,7 @@ def main():
    args = parser.parse_args()
 
    if args.config:
-      data = AJSON.readJson( args.config );
+      data = readJson( args.config );
 
    if args.template:
       template = readJson( args.template)

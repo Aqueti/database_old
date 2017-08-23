@@ -11,6 +11,10 @@ import tkFactory
 def windowCallback():
    pass
 
+##@brief Callback to be notified of a change
+def updateCallback( key, value ):
+   print("Factory Ouput for "+key+": "+str(value))
+
 ##@brief Main function
 def main():
    template = {"name":"test", "type":"string"}
@@ -31,7 +35,7 @@ def main():
       template = readJson( args.template)
 
    #Create GUI
-   window = tkFactory.tkFactory( template, 500, 500)
+   window = tkFactory.tkFactory( template, 500, 500, updateCallback)
    window.generate( "Test TK", template )
    window.start(windowCallback, 1000)
      

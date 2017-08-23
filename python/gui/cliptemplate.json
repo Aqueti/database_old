@@ -1,9 +1,0 @@
-{ "clip": 
-	{ "systemID": "string", 
-	  "startTime": "double", 
-	  "stopTime": "double", 
-	  "tags": [ "string" ], 
-	  "date": "string", 
-	  "location": "string"
-	}
-}

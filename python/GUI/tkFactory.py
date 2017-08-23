@@ -112,6 +112,7 @@ def addObject( parent, key, template, value = None, cb = None):
       editFlag = True
 
    if template["type"] == "dictionary" or template["type"] == "template":
+      print("adding Dictionary with key "+key)
       child = DictionaryNode( parent, template, key, value, cb )
    elif template["type"] == "string":
       if "value" in template:
@@ -146,19 +147,23 @@ class BaseObject:
       self.parent = parent
       self.key = key
       self.cb = cb
+      self.value = value
 
       if value:
          self.value = value
 
    ##@brief function to update data
    def updateData( self, key, value ):
-      self.data[key] = value
+#      self.data[key] = value
       if self.cb:
+         print("Returning "+str(key)+" with value "+self.value+"\n")
          self.cb( key, self.value)
 
    def getData( self ):
+      print("Base Object with key: "+key+" getData")
       if self.cb:
          self.cb( self.key, self.value )
+
       data = {}
       data[self.key] = self.value
       return data
@@ -177,6 +182,7 @@ class DictionaryNode(BaseObject):
       BaseObject.__init__(self, parent, key, value, cb)
 
       self.cb = cb
+      self.children = []
       
       if value: 
          self.value = value
@@ -211,27 +217,30 @@ class DictionaryNode(BaseObject):
          ButtonNode( "AddObject", "Add Element", self.frame, self.addKeyReqFunction ) 
 
    ##@brief function to update data
-   def updateData( self, key, value ):
-      self.value[key] = value 
+   def updateData( self, newkey, value ):
+      self.data[newkey] = value 
       if self.cb:
-         self.cb( key, self.data )
+         self.cb( self.key, self.data)
 
    def getData( self ):
+      print("Getting data for "+self.key)
       for child in self.children:
+         print("Child of "+self.key+" getting data")
          item = child.getData()
-         for k in item:
-            print("Getting value for "+str(k))
-            self.value[k] = item[k]
 
-      print("Dictionary result for "+str(self.key)+":"+str(self.value))
+         if item is not None:
+            for k in item:
+               print("Item "+str(self.key)+" getting value for "+str(k)+"="+str(item[k]))
+               self.data[k] = item[k]
+
+      print("Dictionary result for "+str(self.key)+":"+str(self.data))
       if self.cb:
-         self.cb( self.key, self.value)
+         self.cb( self.key, self.data)
 
       result = {} 
-      result[key] = self.value
+      result[self.key] = self.data
+      return result
 
-         
-   
 
    ##@brief Callback function for when a new button is pressed
    def addKeyReqFunction( self ):
@@ -322,6 +331,7 @@ class tkFactory(BaseObject):
       self.window.title(template["name"])
       self.window.geometry(str(width)+"x"+str(height))
       self.window.data = {}
+      self.children = [];
   
       self.frame = tk.Frame(self.window)
       BaseObject.__init__(self, self.frame, "root", None, None)
@@ -347,6 +357,7 @@ class tkFactory(BaseObject):
       self.name = name
       self.frame.pack()
       addLabel(self.name, self.frame)
+      self.cb = None;
 
  
       child = addObject( self.frame, "", template, "", self.updateData)
@@ -361,16 +372,18 @@ class tkFactory(BaseObject):
 
    ##@brief Callback that is triggered when a widget updates
    def updateCallback( self, key, value ):
-      self.data = value
+      self.data[key] = value
       print("Value: "+str(value))
 
    def getAllData( self ):
+      print("getting all data for "+self.key)
       for child in self.children:
          item = child.getData()
 
-         for k in item:
-            print("Key:"+str(k)+", item:"+str(item))
-            self.value[k] = item[k]
+         if item is not None:
+            for k in item:
+               print("Key:"+str(k)+", item:"+str(item))
+               self.value[k] = item[k]
 
       if self.cb:
          self.cb( self.key, self.value)
